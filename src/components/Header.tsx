@@ -26,8 +26,8 @@ const Header = () => {
   const languages = [
     { code: 'pl', label: 'PL' },
     { code: 'en', label: 'EN' },
-    { code: 'uk', label: 'UK' },
-    { code: 'be', label: 'BEL' },
+    { code: 'uk', label: 'UA' },
+    { code: 'be', label: 'BY' },
   ];
 
   return (
