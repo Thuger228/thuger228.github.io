@@ -21,7 +21,7 @@ const Index = () => {
     {
       category: 'Drums',
       items: [
-        'MAPEX VENUS VE5294FTC',
+        'Yamaha Stage Custom Studio',
         'Gibraltar 9608E Drum Throne',
         'Millenium PD-223 Pro Series BD Pedal',
         'Millenium 16" B20 China',
@@ -88,7 +88,7 @@ const Index = () => {
         'Microphone Rode NT1 Signature Black',
         'Microphone Shure SM-7B',
         'Microphone Audiotechnika AT2020',
-        'Microphone Sennheiser E 602',
+        'Microphone Shure Beta 52A',
         'Microphones Audix Adx 51',
         'Microphone Behringer BA 19A',
         'Microphone Audix i-5',
