@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Check } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Price = () => {
   const { t } = useLanguage();
@@ -60,6 +61,11 @@ const Price = () => {
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
+      <SEO
+        title="Pricing — Recording, Rehearsals & Mixing | Sanctum Sound"
+        description="Transparent pricing at Sanctum Sound Warsaw: recording from 100 PLN/hour, rehearsals from 50 PLN/hour, mixing from 200 PLN/song."
+        path="/price"
+      />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('price_title')}</h1>

@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Speaker, Mic, Cable, Disc } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Rent = () => {
   const { t } = useLanguage();
@@ -13,6 +14,11 @@ const Rent = () => {
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
+      <SEO
+        title="Equipment Rental in Warsaw — Sanctum Sound"
+        description="Rent PA systems, premium microphones, stage gear and portable recording equipment from Sanctum Sound studio in Warsaw."
+        path="/rent"
+      />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('rent_title')}</h1>

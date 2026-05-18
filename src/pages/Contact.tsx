@@ -1,11 +1,17 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { MapPin, Phone, Instagram, Link as LinkIcon } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Contact = () => {
   const { t } = useLanguage();
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
+      <SEO
+        title="Contact Sanctum Sound — Recording Studio in Warsaw"
+        description="Get in touch with Sanctum Sound studio in Warsaw. Address: Aleja Stanów Zjednoczonych 67. Phone: +48 881 238 684."
+        path="/contact"
+      />
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-5xl font-bold text-center mb-10 md:mb-16">{t('contact_title')}</h1>

@@ -6,7 +6,6 @@
     <title>Sanctum Sound — Recording Studio & Rehearsal Rooms in Warsaw</title>
     <meta name="description" content="Sanctum Sound is a professional recording studio in Warsaw offering recording, mixing, rehearsal rooms and equipment rental for bands and artists." />
     <meta name="author" content="Sanctum Sound" />
-    <link rel="canonical" href="https://mono-studio-hub.lovable.app/" />
 
     <meta property="og:title" content="Sanctum Sound — Recording Studio & Rehearsal Rooms in Warsaw" />
     <meta property="og:description" content="Professional recording studio in Warsaw: recording, mixing, rehearsal rooms and equipment rental." />
@@ -19,21 +18,48 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "MusicVenue",
-        "name": "Sanctum Sound",
-        "description": "Professional recording studio and rehearsal rooms in Warsaw.",
-        "url": "https://mono-studio-hub.lovable.app/",
-        "telephone": "+48 881 238 684",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Aleja Stanów Zjednoczonych 67",
-          "postalCode": "03-770",
-          "addressLocality": "Warszawa",
-          "addressCountry": "PL"
-        },
-        "sameAs": [
-          "https://instagram.com/sanctum_sound_studio",
-          "https://linktr.ee/sanctum_sound"
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://mono-studio-hub.lovable.app/#organization",
+            "name": "Sanctum Sound",
+            "url": "https://mono-studio-hub.lovable.app/",
+            "sameAs": [
+              "https://instagram.com/sanctum_sound_studio",
+              "https://linktr.ee/sanctum_sound"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://mono-studio-hub.lovable.app/#website",
+            "url": "https://mono-studio-hub.lovable.app/",
+            "name": "Sanctum Sound",
+            "publisher": { "@id": "https://mono-studio-hub.lovable.app/#organization" }
+          },
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://mono-studio-hub.lovable.app/#localbusiness",
+            "name": "Sanctum Sound",
+            "description": "Professional recording studio and rehearsal rooms in Warsaw.",
+            "url": "https://mono-studio-hub.lovable.app/",
+            "telephone": "+48 881 238 684",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Aleja Stanów Zjednoczonych 67",
+              "postalCode": "03-770",
+              "addressLocality": "Warszawa",
+              "addressCountry": "PL"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 52.2429719,
+              "longitude": 21.0830407
+            },
+            "sameAs": [
+              "https://instagram.com/sanctum_sound_studio",
+              "https://linktr.ee/sanctum_sound"
+            ]
+          }
         ]
       }
     </script>

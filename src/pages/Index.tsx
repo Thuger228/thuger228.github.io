@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import logo from '@/assets/logo.png';
@@ -190,6 +191,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
+      <SEO
+        title="Sanctum Sound — Recording Studio & Rehearsal Rooms in Warsaw"
+        description="Professional recording studio in Warsaw: recording, mixing, rehearsal rooms and equipment rental for bands and artists."
+        path="/"
+      />
       <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)]">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroBackground})` }}></div>
         <div className="absolute inset-0 bg-gradient-to-b from-background via-card to-background opacity-90"></div>

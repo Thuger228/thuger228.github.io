@@ -1,0 +1,12 @@
+# Sanctum Sound
+
+> Professional recording studio and rehearsal rooms in Warsaw — recording, mixing, rehearsals, and equipment rental for bands and artists.
+
+## Pages
+
+- [Home](/): Overview of Sanctum Sound studio, gear, services, and contact.
+- [Recording](/recording): Vocal and instrument recording, mixing, and production services.
+- [Rehearsals](/rehearsals): Acoustically treated rehearsal rooms with full backline.
+- [Rent](/rent): PA systems, microphones, and stage equipment rental.
+- [Price](/price): Hourly and per-song pricing for recording, rehearsals, mixing, and rental.
+- [Contact](/contact): Address, phone, social links, and map for the Warsaw studio.

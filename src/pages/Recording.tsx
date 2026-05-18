@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mic2, Headphones, Music2, Radio } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Recording = () => {
   const { t } = useLanguage();
@@ -13,6 +14,18 @@ const Recording = () => {
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
+      <SEO
+        title="Recording Services — Sanctum Sound Warsaw"
+        description="Vocal and instrument recording, mixing and mastering at Sanctum Sound — a professional recording studio in Warsaw."
+        path="/recording"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Service',
+          serviceType: 'Recording, mixing and mastering',
+          provider: { '@type': 'LocalBusiness', name: 'Sanctum Sound', telephone: '+48 881 238 684' },
+          areaServed: 'Warszawa',
+        }}
+      />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('recording_title')}</h1>
