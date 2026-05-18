@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 
-const SITE_URL = 'https://mono-studio-hub.lovable.app';
+const SITE_URL = 'https://sanctum-sa.com';
 
 interface SEOProps {
   title: string;

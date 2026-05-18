@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mono-studio-hub.lovable.app/sitemap.xml
+Sitemap: https://sanctum-sa.com/sitemap.xml
