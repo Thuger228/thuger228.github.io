@@ -375,7 +375,10 @@ const Index = () => {
       {/* Contact Section */}
       <section id="contact" className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-10 md:mb-16">{t('contact_title')}</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('contact_title')}</h2>
+          <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
+            {t('contact_subtitle')}
+          </p>
 
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 max-w-6xl mx-auto">
             {/* Contact Information */}
@@ -428,13 +431,28 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Fixed Book Button */}
+      <a href="https://linktr.ee/sanctum_sound" target="_blank" rel="noopener noreferrer" className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40 animate-fade-in">
+        <div className="relative">
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
+          <Button 
+            size="lg" 
+            variant="outline"
+            className="group px-10 py-6 md:px-14 md:py-8 text-lg md:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 animate-pulse-subtle"
+          >
+            {t('book_button') || 'Book'}
+            <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </div>
+      </a>
+
       {/* Fixed Contact Button */}
       <a href="#contact" className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 animate-fade-in">
         <div className="relative">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
           <Button 
             size="lg" 
-            className="group px-10 py-6 md:px-14 md:py-8 text-lg md:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 animate-pulse-subtle"
+            className="group px-10 py-6 md:px-14 md:py-8 text-lg md:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
           >
             {t('nav_contact')}
             <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />

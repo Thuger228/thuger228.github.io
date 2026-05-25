@@ -77,6 +77,7 @@ const translations = {
     price_optional: 'Do ustalenia',
     footer_tagline: 'Profesjonalne Studio Nagraniowe i Sale Prób',
     contact_title: 'Kontakt',
+    contact_subtitle: 'Napisz do nas i zarezerwuj swój termin',
     contact_name: 'Imię',
     contact_email: 'Email',
     contact_message: 'Wiadomość',
@@ -87,6 +88,7 @@ const translations = {
     studio_gear_title: 'Sprzęt Studia',
     studio_gear_button: 'Zobacz pełną listę sprzętu',
     studio_gear_watch: 'Zobacz',
+    book_button: 'Zarezerwuj',
   },
   en: {
     nav_recording: 'Recording',
@@ -156,6 +158,7 @@ const translations = {
     price_optional: 'Optional',
     footer_tagline: 'Professional Recording Studio & Rehearsal Space',
     contact_title: 'Contact',
+    contact_subtitle: 'Feel free to reach out and book your appointment',
     contact_name: 'Name',
     contact_email: 'Email',
     contact_message: 'Message',
@@ -166,6 +169,7 @@ const translations = {
     studio_gear_title: 'Studio Gear',
     studio_gear_button: 'View full equipment list',
     studio_gear_watch: 'Watch',
+    book_button: 'Book',
   },
   uk: {
     nav_recording: 'Запис',
@@ -235,6 +239,7 @@ const translations = {
     price_optional: 'Опціонально',
     footer_tagline: 'Професійна Студія Звукозапису та Репетиційні Зали',
     contact_title: 'Контакт',
+    contact_subtitle: "Зв'яжіться з нами та забронюйте свій візит",
     contact_name: "Ім'я",
     contact_email: 'Email',
     contact_message: 'Повідомлення',
@@ -245,6 +250,7 @@ const translations = {
     studio_gear_title: 'Обладнання Студії',
     studio_gear_button: 'Переглянути повний список обладнання',
     studio_gear_watch: 'Переглянути',
+    book_button: 'Забронювати',
   },
   be: {
     nav_recording: 'Запіс',
@@ -314,6 +320,7 @@ const translations = {
     price_optional: 'Апцыянальна',
     footer_tagline: 'Прафесійная Студыя Гукозапісу і Рэпетыцыйныя Залы',
     contact_title: 'Кантакт',
+    contact_subtitle: 'Звяжыцеся з намі і забраніруйце свой візіт',
     contact_name: 'Імя',
     contact_email: 'Email',
     contact_message: 'Паведамленне',
@@ -324,6 +331,7 @@ const translations = {
     studio_gear_title: 'Абсталяванне Студыі',
     studio_gear_button: 'Паглядзець поўны спіс абсталявання',
     studio_gear_watch: 'Паглядзець',
+    book_button: 'Забраніраваць',
   },
 };
 
