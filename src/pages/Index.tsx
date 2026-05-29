@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import logo from '@/assets/logo.png';
 import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, MapPin, Phone, Instagram, Link as LinkIcon, Eye, ListMusic } from 'lucide-react';
 import Gallery from '@/components/Gallery';
+import ContactForm from '@/components/ContactForm';
 import heroBackground from '@/assets/hero-background.jpg';
 import recordingStudio from '@/assets/gallery/recording-studio.jpg';
 import rehearsalRoom from '@/assets/gallery/rehearsal-room.jpg';
@@ -379,6 +380,10 @@ const Index = () => {
           <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
             {t('contact_subtitle')}
           </p>
+
+          <div className="max-w-3xl mx-auto mb-8 md:mb-12">
+            <ContactForm />
+          </div>
 
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 max-w-6xl mx-auto">
             {/* Contact Information */}
