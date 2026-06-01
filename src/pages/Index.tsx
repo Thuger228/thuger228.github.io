@@ -215,9 +215,37 @@ const Index = () => {
             {t('hero_subtitle')}
           </p>
 
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-8 md:mb-12 animate-fade-in">
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold">50+</div>
+              <div className="text-sm md:text-base text-muted-foreground mt-1">{t('stat_clients')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold">80+</div>
+              <div className="text-sm md:text-base text-muted-foreground mt-1">{t('stat_songs')}</div>
+            </div>
+          </div>
+
           <div className="h-16"></div>
         </div>
       </section>
+
+      {/* SEO keyword anchors (accessible to crawlers, hidden visually) */}
+      <nav aria-label="SEO" className="sr-only">
+        <ul>
+          <li><a href="#recording">studio nagrań Warszawa</a></li>
+          <li><a href="#recording">studio nagraniowe Warszawa</a></li>
+          <li><a href="#recording">nagrywanie wokalu Warszawa</a></li>
+          <li><a href="#recording">profesjonalne studio nagrań</a></li>
+          <li><a href="#studio-gear">studio muzyczne Warszawa</a></li>
+          <li><a href="#price">mixing Warszawa</a></li>
+          <li><a href="#price">mastering Warszawa</a></li>
+          <li><a href="#price">miks i mastering cena</a></li>
+          <li><a href="#price">profesjonalny mastering</a></li>
+          <li><a href="#rent">wynajem studia nagraniowego Warszawa</a></li>
+          <li><a href="#rehearsals">sala prób Warszawa</a></li>
+        </ul>
+      </nav>
 
       {/* Gallery Section */}
       <section className="py-12 md:py-20 bg-card">
