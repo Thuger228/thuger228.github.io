@@ -224,6 +224,14 @@ const Index = () => {
               <div className="text-4xl md:text-5xl lg:text-6xl font-bold">80+</div>
               <div className="text-sm md:text-base text-muted-foreground mt-1">{t('stat_songs')}</div>
             </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold">300+</div>
+              <div className="text-sm md:text-base text-muted-foreground mt-1">{t('stat_rehearsals')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold">5★</div>
+              <div className="text-sm md:text-base text-muted-foreground mt-1">{t('stat_rating')}</div>
+            </div>
           </div>
 
           <div className="h-16"></div>
@@ -417,6 +425,10 @@ const Index = () => {
             {/* Contact Information */}
             <div className="bg-card border border-border rounded-lg p-6 md:p-8">
               <div className="space-y-5 md:space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 flex-shrink-0"></div>
+                  <p className="text-sm md:text-base font-semibold text-primary">Napisz do nas i zarezerwuj swój termin</p>
+                </div>
                 <div className="flex items-center gap-3">
                   <LinkIcon className="w-5 h-5 text-primary flex-shrink-0" />
                   <div>
