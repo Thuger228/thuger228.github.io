@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import logo from '@/assets/logo.png';
-import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, MapPin, Phone, Instagram, Link as LinkIcon, Eye, ListMusic } from 'lucide-react';
+import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, MapPin, Phone, Instagram, Link as LinkIcon, Eye, ListMusic, ChevronDown } from 'lucide-react';
 import Gallery from '@/components/Gallery';
 import ContactForm from '@/components/ContactForm';
 import heroBackground from '@/assets/hero-background.jpg';
@@ -18,6 +18,29 @@ import studioLounge from '@/assets/gallery/studio-lounge.jpg';
 const Index = () => {
   const { t } = useLanguage();
   const [gearDialogOpen, setGearDialogOpen] = useState(false);
+  const contactRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!contactRef.current) return;
+    let fired = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !fired) {
+            fired = true;
+            if (typeof window !== 'undefined' && 'gtag' in window) {
+              (window as any).gtag('event', 'conversion', {
+                send_to: 'AW-18156670713',
+              });
+            }
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(contactRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const studioGear = [
     {
@@ -234,7 +257,9 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="h-16"></div>
+          <a href="#gallery" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20">
+            <ChevronDown className="w-10 h-10 text-primary opacity-70" />
+          </a>
         </div>
       </section>
 
@@ -410,7 +435,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
+      <section id="contact" ref={contactRef} className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('contact_title')}</h2>
           <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
