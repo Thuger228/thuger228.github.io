@@ -7,54 +7,52 @@ const Price = () => {
 
   const packages = [
     {
-      name: 'Recording',
-      prefix: 'from',
+      name: t('price_recording_name'),
+      prefix: t('price_from'),
       price: '100 zl',
       unit: '/hour',
       features: [
-        'Professional sound engineer',
-        'Full equipment access',
-        'Digital file delivery',
-        'One revision included',
+        t('price_recording_feature1'),
+        t('price_recording_feature2'),
+        t('price_recording_feature3'),
+        t('price_recording_feature4'),
       ],
     },
     {
-      name: 'Rehearsal',
-      prefix: 'from',
+      name: t('price_rehearsal_name'),
+      prefix: t('price_from'),
       price: '50 zl',
       unit: '/hour',
       features: [
-        'Full backline included',
-        'Full equipment access',
-        'PA system',
-        'Climate controlled',
-        'Flexible scheduling',
+        t('price_rehearsal_feature1'),
+        t('price_rehearsal_feature2'),
+        t('price_rehearsal_feature3'),
+        t('price_rehearsal_feature4'),
       ],
     },
     {
-      name: 'Equipment Rental',
+      name: t('price_rental_name'),
       prefix: '',
-      price: 'Optional',
+      price: t('price_optional'),
       features: [
-        'Professional PA system',
-        'Premium microphones',
-        'Drums',
-        'Guitar and Bass stacks',
-        'Synths',
-        'All cables included',
-        'Technical support',
+        t('price_rental_feature1'),
+        t('price_rental_feature2'),
+        t('price_rental_feature3'),
+        t('price_rental_feature4'),
+        t('price_rental_feature5'),
+        t('price_rental_feature6'),
       ],
     },
     {
-      name: 'Mixing & Mastering',
-      prefix: 'from',
+      name: t('price_mixing_name'),
+      prefix: t('price_from'),
       price: '200 zl',
       unit: '/song',
       features: [
-        'Professional mixing',
-        'Mastering included',
-        'Unlimited revisions',
-        'Industry standard quality',
+        t('price_mixing_feature1'),
+        t('price_mixing_feature2'),
+        t('price_mixing_feature3'),
+        t('price_mixing_feature4'),
       ],
     },
   ];
@@ -70,7 +68,7 @@ const Price = () => {
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('price_title')}</h1>
           <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
-            Transparent pricing for professional services
+            {t('price_subtitle')}
           </p>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 md:gap-8 max-w-7xl mx-auto">

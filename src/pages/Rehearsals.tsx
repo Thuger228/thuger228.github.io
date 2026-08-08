@@ -6,10 +6,10 @@ const Rehearsals = () => {
   const { t } = useLanguage();
 
   const features = [
-    { icon: Guitar, title: 'Full Backline', desc: 'Amplifiers, drums, and PA system included' },
-    { icon: Waves, title: 'Acoustic Treatment', desc: 'Professionally treated rooms for optimal sound' },
-    { icon: Music, title: 'Flexible Booking', desc: 'Hourly, daily, or monthly rental options' },
-    { icon: Drum, title: 'Climate Control', desc: 'Perfect temperature and humidity for instruments' },
+    { icon: Guitar, title: t('rehearsals_backline_title'), desc: t('rehearsals_backline_desc') },
+    { icon: Waves, title: t('rehearsals_acoustic_title'), desc: t('rehearsals_acoustic_desc') },
+    { icon: Music, title: t('rehearsals_booking_title'), desc: t('rehearsals_booking_desc') },
+    { icon: Drum, title: t('rehearsals_climate_title'), desc: t('rehearsals_climate_desc') },
   ];
 
   return (

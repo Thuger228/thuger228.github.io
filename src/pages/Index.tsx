@@ -4,7 +4,7 @@ import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import logo from '@/assets/logo.png';
-import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, MapPin, Phone, Instagram, Link as LinkIcon, Eye, ListMusic, ChevronDown } from 'lucide-react';
+import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, MapPin, Phone, Instagram, Link as LinkIcon, Eye, ListMusic } from 'lucide-react';
 import Gallery from '@/components/Gallery';
 import ContactForm from '@/components/ContactForm';
 import heroBackground from '@/assets/hero-background.jpg';
@@ -182,7 +182,6 @@ const Index = () => {
         t('price_rehearsal_feature2'),
         t('price_rehearsal_feature3'),
         t('price_rehearsal_feature4'),
-        t('price_rehearsal_feature5'),
       ],
     },
     {
@@ -196,7 +195,6 @@ const Index = () => {
         t('price_rental_feature4'),
         t('price_rental_feature5'),
         t('price_rental_feature6'),
-        t('price_rental_feature7'),
       ],
     },
     {
@@ -257,9 +255,6 @@ const Index = () => {
             </div>
           </div>
 
-          <a href="#gallery" className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-20">
-            <ChevronDown className="w-10 h-10 text-primary opacity-70" />
-          </a>
         </div>
       </section>
 

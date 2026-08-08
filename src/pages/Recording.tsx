@@ -6,10 +6,10 @@ const Recording = () => {
   const { t } = useLanguage();
 
   const services = [
-    { icon: Mic2, title: 'Vocal Recording', desc: 'Professional vocal booth with top-tier microphones' },
-    { icon: Music2, title: 'Instrument Recording', desc: 'Full band setup with isolated tracking rooms' },
-    { icon: Headphones, title: 'Mixing & Mastering', desc: 'Industry-standard mixing and mastering services' },
-    { icon: Radio, title: 'Audio Production', desc: 'Complete audio production from concept to final mix' },
+    { icon: Mic2, titleKey: 'recording_vocal_title', descKey: 'recording_vocal_desc' },
+    { icon: Music2, titleKey: 'recording_instrument_title', descKey: 'recording_instrument_desc' },
+    { icon: Headphones, titleKey: 'recording_mixing_title', descKey: 'recording_mixing_desc' },
+    { icon: Radio, titleKey: 'recording_production_title', descKey: 'recording_production_desc' },
   ];
 
   return (
@@ -40,8 +40,8 @@ const Recording = () => {
                 className="p-6 md:p-8 bg-card border border-border rounded-lg hover:border-primary transition-all duration-300 group"
               >
                 <service.icon className="w-10 h-10 md:w-12 md:h-12 mb-3 md:mb-4 text-primary group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3">{service.title}</h3>
-                <p className="text-sm md:text-base text-muted-foreground">{service.desc}</p>
+                <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3">{t(service.titleKey)}</h3>
+                <p className="text-sm md:text-base text-muted-foreground">{t(service.descKey)}</p>
               </div>
             ))}
           </div>

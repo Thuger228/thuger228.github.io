@@ -1,15 +1,15 @@
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Speaker, Mic, Cable, Disc } from 'lucide-react';
+import { Speaker, Mic, Cable, Guitar } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const Rent = () => {
   const { t } = useLanguage();
 
   const equipment = [
-    { icon: Speaker, title: 'PA Systems', desc: 'Professional sound reinforcement systems' },
-    { icon: Mic, title: 'Microphones', desc: 'Premium microphones for any application' },
-    { icon: Cable, title: 'Stage Equipment', desc: 'Cables, stands, and stage accessories' },
-    { icon: Disc, title: 'Recording Gear', desc: 'Portable recording equipment for field work' },
+    { icon: Speaker, title: t('rent_pa_title'), desc: t('rent_pa_desc') },
+    { icon: Mic, title: t('rent_mics_title'), desc: t('rent_mics_desc') },
+    { icon: Cable, title: t('rent_stage_title'), desc: t('rent_stage_desc') },
+    { icon: Guitar, title: t('rent_recording_title'), desc: t('rent_recording_desc') },
   ];
 
   return (
