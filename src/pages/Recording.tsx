@@ -1,9 +1,11 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mic2, Headphones, Music2, Radio } from 'lucide-react';
 import SEO from '@/components/SEO';
+import BookingCTA from '@/components/BookingCTA';
+import { pageUrl } from '@/i18n/config';
 
 const Recording = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   const services = [
     { icon: Mic2, titleKey: 'recording_vocal_title', descKey: 'recording_vocal_desc' },
@@ -15,15 +17,17 @@ const Recording = () => {
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
-        title="Recording Services — Sanctum Sound Warsaw"
-        description="Vocal and instrument recording, mixing and mastering at Sanctum Sound — a professional recording studio in Warsaw."
-        path="/recording"
+        title={t('seo_recording_title')}
+        description={t('seo_recording_desc')}
+        page="recording"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'Service',
+          name: t('recording_title'),
           serviceType: 'Recording, mixing and mastering',
-          provider: { '@type': 'LocalBusiness', name: 'Sanctum Sound', telephone: '+48 881 238 684' },
-          areaServed: 'Warszawa',
+          provider: { '@id': 'https://sanctum-sa.com/#localbusiness' },
+          areaServed: { '@type': 'City', name: 'Warszawa' },
+          url: pageUrl(language, 'recording'),
         }}
       />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
@@ -47,6 +51,7 @@ const Recording = () => {
           </div>
         </div>
       </section>
+      <BookingCTA />
     </div>
   );
 };

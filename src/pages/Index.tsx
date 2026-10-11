@@ -1,22 +1,50 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PageSlug, pagePath } from '@/i18n/config';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import logo from '@/assets/logo.png';
-import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, MapPin, Phone, Instagram, Link as LinkIcon, Eye, ListMusic } from 'lucide-react';
+import logo from '@/assets/logo.webp';
+import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, Eye, ListMusic } from 'lucide-react';
 import Gallery from '@/components/Gallery';
 import ContactForm from '@/components/ContactForm';
-import heroBackground from '@/assets/hero-background.jpg';
-import recordingStudio from '@/assets/gallery/recording-studio.jpg';
-import rehearsalRoom from '@/assets/gallery/rehearsal-room.jpg';
-import equipment from '@/assets/gallery/equipment.jpg';
-import vocalBooth from '@/assets/gallery/vocal-booth.jpg';
-import instruments from '@/assets/gallery/instruments.jpg';
-import studioLounge from '@/assets/gallery/studio-lounge.jpg';
+import ContactDetails from '@/components/ContactDetails';
+import FAQ, { useFaqJsonLd } from '@/components/FAQ';
+import { usePricePackages } from '@/data/prices';
+import heroBackground from '@/assets/hero-background.webp';
+import recordingStudio from '@/assets/gallery/recording-studio.webp';
+import recordingStudioSm from '@/assets/gallery/recording-studio-sm.webp';
+import rehearsalRoom from '@/assets/gallery/rehearsal-room.webp';
+import rehearsalRoomSm from '@/assets/gallery/rehearsal-room-sm.webp';
+import equipment from '@/assets/gallery/equipment.webp';
+import equipmentSm from '@/assets/gallery/equipment-sm.webp';
+import vocalBooth from '@/assets/gallery/vocal-booth.webp';
+import vocalBoothSm from '@/assets/gallery/vocal-booth-sm.webp';
+import instruments from '@/assets/gallery/instruments.webp';
+import instrumentsSm from '@/assets/gallery/instruments-sm.webp';
+import studioLounge from '@/assets/gallery/studio-lounge.webp';
+import studioLoungeSm from '@/assets/gallery/studio-lounge-sm.webp';
+
+const MoreLink = ({ slug }: { slug: PageSlug }) => {
+  const { language, t } = useLanguage();
+  return (
+    <div className="text-center mt-8 md:mt-12">
+      <Link
+        to={pagePath(language, slug)}
+        className="inline-flex items-center gap-2 py-2 text-primary font-medium hover:underline"
+      >
+        {t('more_link')}
+        <ArrowRight className="w-4 h-4" />
+      </Link>
+    </div>
+  );
+};
 
 const Index = () => {
   const { t } = useLanguage();
+  const faqJsonLd = useFaqJsonLd();
+  const pricePackages = usePricePackages();
   const [gearDialogOpen, setGearDialogOpen] = useState(false);
   const contactRef = useRef<HTMLElement>(null);
 
@@ -130,12 +158,12 @@ const Index = () => {
   ];
 
   const galleryImages = [
-    { src: recordingStudio, alt: 'Professional Recording Studio' },
-    { src: rehearsalRoom, alt: 'Rehearsal Room' },
-    { src: equipment, alt: 'Audio Equipment' },
-    { src: vocalBooth, alt: 'Vocal Recording Booth' },
-    { src: instruments, alt: 'Musical Instruments' },
-    { src: studioLounge, alt: 'Studio Lounge Area' },
+    { src: recordingStudio, thumb: recordingStudioSm, alt: t('gallery_alt_recording') },
+    { src: rehearsalRoom, thumb: rehearsalRoomSm, alt: t('gallery_alt_rehearsal') },
+    { src: equipment, thumb: equipmentSm, alt: t('gallery_alt_equipment') },
+    { src: vocalBooth, thumb: vocalBoothSm, alt: t('gallery_alt_vocal') },
+    { src: instruments, thumb: instrumentsSm, alt: t('gallery_alt_instruments') },
+    { src: studioLounge, thumb: studioLoungeSm, alt: t('gallery_alt_lounge') },
   ];
 
   const recordingServices = [
@@ -159,64 +187,14 @@ const Index = () => {
     { icon: Disc, title: t('rent_recording_title'), desc: t('rent_recording_desc') },
   ];
 
-  const pricePackages = [
-    {
-      name: t('price_recording_name'),
-      prefix: t('price_from'),
-      price: '120 zł',
-      unit: '/hour',
-      features: [
-        t('price_recording_feature1'),
-        t('price_recording_feature2'),
-        t('price_recording_feature3'),
-        t('price_recording_feature4'),
-      ],
-    },
-    {
-      name: t('price_rehearsal_name'),
-      prefix: t('price_from'),
-      price: '50 zł',
-      unit: '/hour',
-      features: [
-        t('price_rehearsal_feature1'),
-        t('price_rehearsal_feature2'),
-        t('price_rehearsal_feature3'),
-        t('price_rehearsal_feature4'),
-      ],
-    },
-    {
-      name: t('price_rental_name'),
-      prefix: '',
-      price: t('price_optional'),
-      features: [
-        t('price_rental_feature1'),
-        t('price_rental_feature2'),
-        t('price_rental_feature3'),
-        t('price_rental_feature4'),
-        t('price_rental_feature5'),
-        t('price_rental_feature6'),
-      ],
-    },
-    {
-      name: t('price_mixing_name'),
-      prefix: t('price_from'),
-      price: '400 zł',
-      unit: '/song',
-      features: [
-        t('price_mixing_feature1'),
-        t('price_mixing_feature2'),
-        t('price_mixing_feature3'),
-        t('price_mixing_feature4'),
-      ],
-    },
-  ];
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
-        title="Sanctum Sound — Recording Studio & Rehearsal Rooms in Warsaw"
-        description="Professional recording studio in Warsaw: recording, mixing, rehearsal rooms and equipment rental for bands and artists."
-        path="/"
+        title={t('seo_home_title')}
+        description={t('seo_home_desc')}
+        page=""
+        jsonLd={faqJsonLd}
       />
       <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)]">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroBackground})` }}></div>
@@ -225,7 +203,7 @@ const Index = () => {
         
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="mb-8 md:mb-12 flex justify-center">
-            <img src={logo} alt="Sanctum Sound" className="h-24 md:h-32 lg:h-48 w-auto animate-fade-in" />
+            <img src={logo} alt="" width={192} height={192} className="h-24 md:h-32 lg:h-48 w-auto animate-fade-in" />
           </div>
           
           <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 animate-fade-in px-4">
@@ -234,6 +212,9 @@ const Index = () => {
           
           <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 md:mb-12 max-w-2xl mx-auto animate-fade-in px-4">
             {t('hero_subtitle')}
+          </p>
+          <p className="text-sm md:text-base text-muted-foreground -mt-4 md:-mt-8 mb-8 md:mb-12 animate-fade-in px-4">
+            {t('hero_location')}
           </p>
 
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-8 md:mb-12 animate-fade-in">
@@ -258,22 +239,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* SEO keyword anchors (accessible to crawlers, hidden visually) */}
-      <nav aria-label="SEO" className="sr-only">
-        <ul>
-          <li><a href="#recording">studio nagrań Warszawa</a></li>
-          <li><a href="#recording">studio nagraniowe Warszawa</a></li>
-          <li><a href="#recording">nagrywanie wokalu Warszawa</a></li>
-          <li><a href="#recording">profesjonalne studio nagrań</a></li>
-          <li><a href="#studio-gear">studio muzyczne Warszawa</a></li>
-          <li><a href="#price">mixing Warszawa</a></li>
-          <li><a href="#price">mastering Warszawa</a></li>
-          <li><a href="#price">miks i mastering cena</a></li>
-          <li><a href="#price">profesjonalny mastering</a></li>
-          <li><a href="#rent">wynajem studia nagraniowego Warszawa</a></li>
-          <li><a href="#rehearsals">sala prób Warszawa</a></li>
-        </ul>
-      </nav>
 
       {/* Gallery Section */}
       <section className="py-12 md:py-20 bg-card">
@@ -346,6 +311,7 @@ const Index = () => {
               </div>
             ))}
           </div>
+          <MoreLink slug="recording" />
         </div>
       </section>
 
@@ -369,6 +335,7 @@ const Index = () => {
               </div>
             ))}
           </div>
+          <MoreLink slug="rehearsals" />
         </div>
       </section>
 
@@ -392,6 +359,7 @@ const Index = () => {
               </div>
             ))}
           </div>
+          <MoreLink slug="rent" />
         </div>
       </section>
 
@@ -426,8 +394,11 @@ const Index = () => {
               </div>
             ))}
           </div>
+          <MoreLink slug="price" />
         </div>
       </section>
+
+      <FAQ />
 
       {/* Contact Section */}
       <section id="contact" ref={contactRef} className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
@@ -441,64 +412,13 @@ const Index = () => {
             <ContactForm />
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 max-w-6xl mx-auto">
-            {/* Contact Information */}
-            <div className="bg-card border border-border rounded-lg p-6 md:p-8">
-              <div className="space-y-5 md:space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 flex-shrink-0"></div>
-                  <p className="text-sm md:text-base font-semibold text-primary">Napisz do nas i zarezerwuj swój termin</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <LinkIcon className="w-5 h-5 text-primary flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm md:text-base">Linktree</p>
-                    <a href="https://linktr.ee/sanctum_sound" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-primary transition-colors break-all">linktr.ee/sanctum_sound</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Instagram className="w-5 h-5 text-primary flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm md:text-base">Instagram</p>
-                    <a href="https://instagram.com/sanctum_sound_studio" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-primary transition-colors">@sanctum_sound_studio</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm md:text-base">{t('contact_address')}</p>
-                    <p className="text-xs md:text-sm text-muted-foreground">Aleja Stanów Zjednoczonych 67, 03-770 Warszawa</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm md:text-base">{t('contact_phone')}</p>
-                    <p className="text-xs md:text-sm text-muted-foreground">+48 881 238 684</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Google Maps */}
-            <div className="bg-card border border-border rounded-lg overflow-hidden h-[400px] md:h-[600px]">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2443.022668981685!2d21.083040699999998!3d52.2429719!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecdbef9fd1999%3A0xbae39472934ab9d5!2sAleja%20Stan%C3%B3w%20Zjednoczonych%2067%2C%2003-770%20Warszawa!5e0!3m2!1sru!2spl!4v1763254968136!5m2!1sru!2spl"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
-          </div>
+          <ContactDetails />
         </div>
       </section>
 
       {/* Fixed Book Button */}
-      <a href="https://linktr.ee/sanctum_sound" target="_blank" rel="noopener noreferrer" className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40 animate-fade-in">
-        <div className="relative">
+      <a href="https://linktr.ee/sanctum_sound" target="_blank" rel="noopener noreferrer" className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
+        <div className="relative animate-fade-in">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
           <Button 
             size="lg" 
@@ -512,8 +432,8 @@ const Index = () => {
       </a>
 
       {/* Fixed Contact Button */}
-      <a href="#contact" className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 animate-fade-in">
-        <div className="relative">
+      <a href="#contact" className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40">
+        <div className="relative animate-fade-in">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
           <Button 
             size="lg" 
@@ -525,20 +445,6 @@ const Index = () => {
         </div>
       </a>
 
-      {/* Footer */}
-      <footer className="bg-card border-t border-border py-8 md:py-12">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <img src={logo} alt="Sanctum Sound" className="h-16 w-auto" />
-            <p className="text-muted-foreground text-sm">
-              {t('footer_tagline')}
-            </p>
-            <p className="text-muted-foreground text-xs">
-              © {new Date().getFullYear()} Sanctum Sound. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

@@ -1,9 +1,11 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Speaker, Mic, Cable, Guitar } from 'lucide-react';
 import SEO from '@/components/SEO';
+import BookingCTA from '@/components/BookingCTA';
+import { pageUrl } from '@/i18n/config';
 
 const Rent = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   const equipment = [
     { icon: Speaker, title: t('rent_pa_title'), desc: t('rent_pa_desc') },
@@ -15,9 +17,18 @@ const Rent = () => {
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
-        title="Equipment Rental in Warsaw — Sanctum Sound"
-        description="Rent PA systems, premium microphones, stage gear and portable recording equipment from Sanctum Sound studio in Warsaw."
-        path="/rent"
+        title={t('seo_rent_title')}
+        description={t('seo_rent_desc')}
+        page="rent"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Service',
+          name: t('rent_title'),
+          serviceType: 'Music equipment rental',
+          provider: { '@id': 'https://sanctum-sa.com/#localbusiness' },
+          areaServed: { '@type': 'City', name: 'Warszawa' },
+          url: pageUrl(language, 'rent'),
+        }}
       />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
@@ -40,6 +51,7 @@ const Rent = () => {
           </div>
         </div>
       </section>
+      <BookingCTA />
     </div>
   );
 };

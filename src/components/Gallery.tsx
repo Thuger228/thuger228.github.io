@@ -10,6 +10,7 @@ import {
 
 interface GalleryImage {
   src: string;
+  thumb?: string;
   alt: string;
 }
 
@@ -38,11 +39,16 @@ const Gallery = ({ images }: GalleryProps) => {
           <button
             key={index}
             onClick={() => openLightbox(index)}
+            aria-label={image.alt}
             className="relative aspect-[4/3] overflow-hidden rounded-lg bg-card border border-border hover:border-primary transition-all duration-300 group"
           >
             <img
-              src={image.src}
+              src={image.thumb ?? image.src}
               alt={image.alt}
+              width={640}
+              height={960}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors duration-300" />

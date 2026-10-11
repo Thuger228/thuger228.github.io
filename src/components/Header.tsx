@@ -1,50 +1,48 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import logo from '@/assets/logo.png';
+import { LANGUAGES, LANGUAGE_LABELS, pagePath, slugFromPath } from '@/i18n/config';
+import logo from '@/assets/logo.webp';
 
 const Header = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, t } = useLanguage();
+  const location = useLocation();
+  const homePath = pagePath(language);
+  const isHome = location.pathname === homePath;
 
   const navItems = [
-    { path: '#recording', label: t('nav_recording') },
-    { path: '#rehearsals', label: t('nav_rehearsals') },
-    { path: '#rent', label: t('nav_rent') },
-    { path: '#price', label: t('nav_price') },
-    { path: '#contact', label: t('nav_contact') },
+    { hash: '#recording', label: t('nav_recording') },
+    { hash: '#rehearsals', label: t('nav_rehearsals') },
+    { hash: '#rent', label: t('nav_rent') },
+    { hash: '#price', label: t('nav_price') },
+    { hash: '#contact', label: t('nav_contact') },
   ];
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
-    if (path.startsWith('#')) {
-      e.preventDefault();
-      const element = document.querySelector(path);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    if (!isHome) return; // follow the link to the home page section
+    e.preventDefault();
+    const element = document.querySelector(hash);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const languages = [
-    { code: 'pl', label: 'PL' },
-    { code: 'en', label: 'EN' },
-    { code: 'uk', label: 'UA' },
-    { code: 'be', label: 'BY' },
-  ];
+  const currentSlug = slugFromPath(location.pathname);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center h-16 md:h-20">
-          <Link to="/" className="flex items-center">
-            <img src={logo} alt="Sanctum Sound" className="h-14 md:h-16 w-auto" />
+          <Link to={homePath} className="flex items-center" aria-label={t('nav_home')}>
+            <img src={logo} alt={t('logo_alt')} width={64} height={64} className="h-14 md:h-16 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
             {navItems.map((item) => (
               <a
-                key={item.path}
-                href={item.path}
-                onClick={(e) => handleNavClick(e, item.path)}
+                key={item.hash}
+                href={`${homePath}${item.hash}`}
+                onClick={(e) => handleNavClick(e, item.hash)}
                 className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
               >
                 {item.label}
@@ -52,22 +50,25 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Language Switcher */}
-          <div className="flex items-center gap-2 ml-auto">
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => setLanguage(lang.code as any)}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  language === lang.code
+          {/* Language Switcher: real links so each language URL is crawlable */}
+          <nav aria-label={t('lang_label')} className="flex items-center gap-1 md:gap-2 ml-auto">
+            {LANGUAGES.map((lang) => (
+              <Link
+                key={lang}
+                to={pagePath(lang, currentSlug)}
+                hrefLang={lang}
+                lang={lang}
+                aria-current={language === lang ? 'true' : undefined}
+                className={`inline-flex items-center justify-center min-w-[40px] h-10 px-2 text-xs font-medium rounded transition-colors ${
+                  language === lang
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground hover:bg-accent'
                 }`}
               >
-                {lang.label}
-              </button>
+                {LANGUAGE_LABELS[lang]}
+              </Link>
             ))}
-          </div>
+          </nav>
         </div>
       </div>
     </header>

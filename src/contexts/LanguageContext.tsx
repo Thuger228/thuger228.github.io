@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-type Language = 'pl' | 'en' | 'uk' | 'be';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Language, languageFromPath, pagePath, slugFromPath } from '@/i18n/config';
+import { extraTranslations } from '@/i18n/extra';
 
 interface LanguageContextType {
   language: Language;
@@ -15,8 +16,8 @@ const translations = {
     nav_rent: 'Wynajem',
     nav_price: 'Cennik',
     nav_contact: 'Kontakt',
-    hero_title: 'Profesjonalne Studio Nagraniowe',
-    hero_subtitle: 'Najwyższa jakość nagrań w sercu miasta',
+    hero_title: 'Profesjonalne studio nagrań w Warszawie',
+    hero_subtitle: 'Nagrywanie wokalu, miks i mastering, sala prób i wynajem sprzętu',
     stat_clients: 'klientów',
     stat_songs: 'wydanych utworów',
     stat_rehearsals: 'prób',
@@ -24,21 +25,21 @@ const translations = {
     recording_title: 'Usługi Nagraniowe',
     recording_desc: 'Oferujemy kompleksowe usługi nagraniowe z wykorzystaniem najnowocześniejszego sprzętu i doświadczonego zespołu inżynierów dźwięku.',
     recording_vocal_title: 'Nagranie wokalu',
-    recording_vocal_desc: 'Nagranie wokalu w studiu wyposażonym w nowoczesny sprzęt. Nagrywamy do utworów muzycznych, rapu, podcastów, reklam i td. U nas możesz oczekiwać na zyste brzmienie, komfortową atmosferę i indywidualne podejście, które pozwolą w pełni wykorzystać potencjał Twojego głosu',
+    recording_vocal_desc: 'Nagranie wokalu w studiu wyposażonym w nowoczesny sprzęt. Nagrywamy do utworów muzycznych, rapu, podcastów, reklam itd. U nas możesz liczyć na czyste brzmienie, komfortową atmosferę i indywidualne podejście, które pozwolą w pełni wykorzystać potencjał Twojego głosu',
     recording_instrument_title: 'Nagrania instrumentów',
     recording_instrument_desc: 'Profesjonalne nagrania instrumentów muzycznych w doskonale przygotowanych warunkach akustycznych. Rejestrujemy gitary, bas, perkusję, instrumenty klawiszowe, smyczkowe i dęte, dbając o najwyższą jakość dźwięku. Mamy sprzęt z wysokiej półki, mikrofony takich marek jak Audix, Shure, Behringer, AKG, Sennheiser gwarantują naturalne, szczegółowe brzmienie gotowe do miksu i masteringu',
     recording_mixing_title: 'Mix i mastering',
-    recording_mixing_desc: 'Profesjonalny mix i mastering. Dbamy o odpowiedni balans, dynamikę oraz przestrzeń w nagraniu, aby Twoja muzyka brzmiała doskonale na wszystkich platformach i systemach odsłuchowych. Każdy projekt traktujemy indywidualnie, podkreślając jego charakter i potencjał. Oferujemy również edycję wokalu, prostowanie ścieżek perkusji i tp',
+    recording_mixing_desc: 'Profesjonalny mix i mastering. Dbamy o odpowiedni balans, dynamikę oraz przestrzeń w nagraniu, aby Twoja muzyka brzmiała doskonale na wszystkich platformach i systemach odsłuchowych. Każdy projekt traktujemy indywidualnie, podkreślając jego charakter i potencjał. Oferujemy również edycję wokalu, prostowanie ścieżek perkusji itp.',
     recording_production_title: 'Produkcja Audio',
     recording_production_desc: 'Masz pomysł na piosenkę, ale nie wiesz, jak zamienić go w profesjonalny utwór? Oferujemy kompleksową realizację muzyczną od pierwszej koncepcji aż po gotowy materiał do publikacji. Pomagamy w opracowaniu aranżacji, realizujemy nagrania wokalu i instrumentów, a następnie zajmujemy się edycją, miksem i masteringiem',
     rehearsals_title: 'Sale Prób',
-    rehearsals_desc: 'Profesjonalne sale prób wyposażone w pełen backline i nagłośnienie. Idealne dla zespołów każdego gatunku.',
+    rehearsals_desc: 'Profesjonalna sala prób w Warszawie wyposażona w pełen backline i nagłośnienie. Idealna dla zespołów każdego gatunku.',
     rehearsals_backline_title: 'Pełen Backline',
     rehearsals_backline_desc: 'Oferujemy wzmacniacze lampowe gitarowe i basowe, zestaw perkusyjny w pełni wyposażony do grania, oraz wysokiej jakości sprzęt nagłośnieniowy 800 Watt. Wszystko serwisowane na bieżąco, wyposażenie zapewnia niezawodność, komfort gry i doskonałe brzmienie',
     rehearsals_acoustic_title: 'Wyciszenie Akustyczne',
     rehearsals_acoustic_desc: 'Salka została przygotowana akustycznie, aby zapewnić czyste i zrównoważone brzmienie. Ogranicza niepożądane odbicia dźwięku, poprawia komfort odsłuchu i pozwala skupić się na muzyce. Zarezerwuj termin i usłysz różnicę już od pierwszej próby',
     rehearsals_booking_title: 'Elastyczna Rezerwacja',
-    rehearsals_booking_desc: 'Mamy wolne terminy na wynajem godzinowy aż i stale terminy. W razie jakichkolwiek pytań napisz do nas lub właśnie zarezerwuj nawet przez stronę internetową',
+    rehearsals_booking_desc: 'Salę prób w Warszawie wynajmiesz u nas na godziny albo na stałe terminy. W razie pytań napisz do nas lub zarezerwuj termin przez stronę internetową',
     rehearsals_climate_title: 'Komfort i wsparcie',
     rehearsals_climate_desc: 'Na miejscu gratis masz kawę lub herbatę. Wsparcie przez cały czas prób lub nagrań. WC i klima. Jeśli czegoś potrzebujesz po prostu zapytaj o tym administratora',
     rent_title: 'Wynajem Sprzętu',
@@ -102,8 +103,8 @@ const translations = {
     nav_rent: 'Rent',
     nav_price: 'Price',
     nav_contact: 'Contact',
-    hero_title: 'Professional Recording Studio',
-    hero_subtitle: 'Highest quality recordings in the heart of the city',
+    hero_title: 'Professional Recording Studio in Warsaw',
+    hero_subtitle: 'Vocal recording, mixing and mastering, rehearsal rooms and equipment rental',
     stat_clients: 'clients',
     stat_songs: 'released songs',
     stat_rehearsals: 'rehearsals',
@@ -189,7 +190,7 @@ const translations = {
     nav_rent: 'Оренда',
     nav_price: 'Ціни',
     nav_contact: 'Контакт',
-    hero_title: 'Професійна Студія Звукозапису',
+    hero_title: 'Професійна студія звукозапису у Варшаві',
     hero_subtitle: 'Найвища якість записів у центрі міста',
     stat_clients: 'клієнтів',
     stat_songs: 'випущених пісень',
@@ -276,7 +277,7 @@ const translations = {
     nav_rent: 'Арэнда',
     nav_price: 'Кошты',
     nav_contact: 'Кантакт',
-    hero_title: 'Прафесійная Студыя Гукозапісу',
+    hero_title: 'Прафесійная студыя гукозапісу ў Варшаве',
     hero_subtitle: 'Найвышэйшая якасць запісаў у цэнтры горада',
     stat_clients: 'кліентаў',
     stat_songs: 'выпушчаных песень',
@@ -361,39 +362,23 @@ const translations = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Detect browser language and set default
-const detectBrowserLanguage = (): Language => {
-  const browserLang = navigator.language.toLowerCase();
-  
-  // Map browser language codes to our supported languages
-  if (browserLang.startsWith('pl')) return 'pl';
-  if (browserLang.startsWith('uk')) return 'uk';
-  if (browserLang.startsWith('be')) return 'be';
-  if (browserLang.startsWith('en')) return 'en';
-  
-  // Default to English if language not supported
-  return 'en';
-};
-
+// The language comes from the URL: / is Polish, /en/, /uk/ and /be/ are the other languages.
+// This keeps every language on its own indexable URL instead of a localStorage setting.
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>(() => {
-    // Check if language is stored in localStorage
-    const storedLang = localStorage.getItem('language') as Language | null;
-    if (storedLang && ['pl', 'en', 'uk', 'be'].includes(storedLang)) {
-      return storedLang;
-    }
-    // Otherwise, detect browser language
-    return detectBrowserLanguage();
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const language = languageFromPath(location.pathname);
 
-  // Save language preference to localStorage when it changes
   const handleSetLanguage = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
+    navigate(pagePath(lang, slugFromPath(location.pathname)) + location.hash);
   };
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations.en] || key;
+    return (
+      (extraTranslations[language] as Record<string, string>)[key] ||
+      (translations[language] as Record<string, string>)[key] ||
+      key
+    );
   };
 
   return (
