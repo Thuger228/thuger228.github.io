@@ -3,24 +3,25 @@ import { Check } from 'lucide-react';
 import SEO from '@/components/SEO';
 import BookingCTA from '@/components/BookingCTA';
 import { usePricePackages } from '@/data/prices';
+import PageContent, { PageHeader, pageFaqJsonLd } from '@/components/PageContent';
+import { useCopy } from '@/i18n/content';
 
 const Price = () => {
   const { t } = useLanguage();
   const packages = usePricePackages();
+  const page = useCopy().price;
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
-        title={t('seo_price_title')}
-        description={t('seo_price_desc')}
+        title={page.title}
+        description={page.desc}
         page="price"
+        jsonLd={[pageFaqJsonLd(page.faq)]}
       />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
-          <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('price_title')}</h1>
-          <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
-            {t('price_subtitle')}
-          </p>
+          <PageHeader page={page} />
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 md:gap-8 max-w-7xl mx-auto">
             {packages.map((pkg, index) => (
@@ -47,6 +48,7 @@ const Price = () => {
           </div>
         </div>
       </section>
+      <PageContent page={page} />
       <BookingCTA />
     </div>
   );

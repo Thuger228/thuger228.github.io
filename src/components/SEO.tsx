@@ -6,7 +6,7 @@ interface SEOProps {
   title: string;
   description: string;
   page: PageSlug;
-  jsonLd?: object | object[];
+  jsonLd?: object | (object | null)[];
   noindex?: boolean;
 }
 
@@ -15,7 +15,7 @@ const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
 const SEO = ({ title, description, page, jsonLd, noindex }: SEOProps) => {
   const { language } = useLanguage();
   const url = pageUrl(language, page);
-  const ldArray = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+  const ldArray = (jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []).filter(Boolean);
   return (
     <Helmet>
       <html lang={language} />

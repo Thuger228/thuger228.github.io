@@ -1,5 +1,6 @@
 // SEO titles/descriptions, FAQ and other strings added for the multilingual, pre-rendered site.
 // Merged into the main translations in LanguageContext.
+import { ruExtra } from './ru';
 
 export const extraTranslations = {
   pl: {
@@ -45,6 +46,7 @@ export const extraTranslations = {
     notfound_text: 'Nie znaleziono strony',
     notfound_link: 'Wróć na stronę główną',
     footer_rights: 'Wszelkie prawa zastrzeżone.',
+    price_mixing_name: 'Miks i mastering',
   },
   en: {
     seo_home_title: 'Recording Studio in Warsaw — Sanctum Sound | Mixing, Mastering, Rehearsal Rooms',
@@ -178,4 +180,5 @@ export const extraTranslations = {
     notfound_link: 'Вярнуцца на галоўную',
     footer_rights: 'Усе правы абаронены.',
   },
+  ru: ruExtra,
 };

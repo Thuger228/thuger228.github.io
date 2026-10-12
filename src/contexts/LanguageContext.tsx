@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Language, languageFromPath, pagePath, slugFromPath } from '@/i18n/config';
 import { extraTranslations } from '@/i18n/extra';
+import { ruTranslations } from '@/i18n/ru';
 
 interface LanguageContextType {
   language: Language;
@@ -358,11 +359,12 @@ const translations = {
     studio_gear_watch: 'Паглядзець',
     book_button: 'Забраніраваць',
   },
+  ru: ruTranslations,
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// The language comes from the URL: / is Polish, /en/, /uk/ and /be/ are the other languages.
+// The language comes from the URL: / is Polish, /en/, /uk/, /be/ and /ru/ are the other languages.
 // This keeps every language on its own indexable URL instead of a localStorage setting.
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const location = useLocation();

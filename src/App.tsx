@@ -13,6 +13,8 @@ import Rehearsals from "./pages/Rehearsals";
 import Rent from "./pages/Rent";
 import Price from "./pages/Price";
 import Contact from "./pages/Contact";
+import Voucher from "./pages/Voucher";
+import Podcast from "./pages/Podcast";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const pageComponents: Record<PageSlug, () => JSX.Element> = {
   rent: Rent,
   price: Price,
   contact: Contact,
+  voucher: Voucher,
+  podcast: Podcast,
 };
 
 // Shared between the browser (BrowserRouter) and the build-time pre-renderer (StaticRouter).

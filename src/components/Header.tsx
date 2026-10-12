@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LANGUAGES, LANGUAGE_LABELS, pagePath, slugFromPath } from '@/i18n/config';
+import { useCopy } from '@/i18n/content';
 import logo from '@/assets/logo.webp';
 
 const Header = () => {
   const { language, t } = useLanguage();
+  const copy = useCopy();
   const location = useLocation();
   const homePath = pagePath(language);
   const isHome = location.pathname === homePath;
@@ -32,21 +34,30 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center h-16 md:h-20">
-          <Link to={homePath} className="flex items-center" aria-label={t('nav_home')}>
+          <Link to={homePath} className="flex items-center shrink-0" aria-label={t('nav_home')}>
             <img src={logo} alt={t('logo_alt')} width={64} height={64} className="h-14 md:h-16 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
+          <nav className="hidden md:flex items-center gap-3 lg:gap-8 flex-1 justify-center px-3">
             {navItems.map((item) => (
               <a
                 key={item.hash}
                 href={`${homePath}${item.hash}`}
                 onClick={(e) => handleNavClick(e, item.hash)}
-                className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+                className="text-xs lg:text-sm whitespace-nowrap font-medium transition-colors hover:text-primary text-muted-foreground"
               >
                 {item.label}
               </a>
+            ))}
+            {(['voucher', 'podcast'] as const).map((slug) => (
+              <Link
+                key={slug}
+                to={pagePath(language, slug)}
+                className="text-xs lg:text-sm whitespace-nowrap font-medium transition-colors hover:text-primary text-muted-foreground"
+              >
+                {copy.ui[`nav_${slug}`]}
+              </Link>
             ))}
           </nav>
 

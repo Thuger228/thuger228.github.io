@@ -1,10 +1,10 @@
 // Site-wide language and URL configuration.
-// Polish lives at the root (/), other languages under their own prefix (/en/, /uk/, /be/),
+// Polish lives at the root (/), other languages under their own prefix (/en/, /uk/, /be/, /ru/),
 // so every language has its own indexable URL.
 
 export const SITE_URL = 'https://sanctum-sa.com';
 
-export const LANGUAGES = ['pl', 'en', 'uk', 'be'] as const;
+export const LANGUAGES = ['pl', 'en', 'uk', 'be', 'ru'] as const;
 export type Language = (typeof LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: Language = 'pl';
 
@@ -13,6 +13,7 @@ export const LANGUAGE_LABELS: Record<Language, string> = {
   en: 'EN',
   uk: 'UA',
   be: 'BY',
+  ru: 'RU',
 };
 
 export const OG_LOCALES: Record<Language, string> = {
@@ -20,10 +21,11 @@ export const OG_LOCALES: Record<Language, string> = {
   en: 'en_US',
   uk: 'uk_UA',
   be: 'be_BY',
+  ru: 'ru_RU',
 };
 
 // '' is the home page
-export const PAGES = ['', 'recording', 'rehearsals', 'rent', 'price', 'contact'] as const;
+export const PAGES = ['', 'recording', 'rehearsals', 'rent', 'price', 'contact', 'voucher', 'podcast'] as const;
 export type PageSlug = (typeof PAGES)[number];
 
 export const langPrefix = (lang: Language) => (lang === DEFAULT_LANGUAGE ? '' : `/${lang}`);

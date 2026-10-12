@@ -12,6 +12,7 @@ import ContactForm from '@/components/ContactForm';
 import ContactDetails from '@/components/ContactDetails';
 import FAQ, { useFaqJsonLd } from '@/components/FAQ';
 import { usePricePackages } from '@/data/prices';
+import { useCopy } from '@/i18n/content';
 import heroBackground from '@/assets/hero-background.webp';
 import recordingStudio from '@/assets/gallery/recording-studio.webp';
 import recordingStudioSm from '@/assets/gallery/recording-studio-sm.webp';
@@ -42,7 +43,8 @@ const MoreLink = ({ slug }: { slug: PageSlug }) => {
 };
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const copy = useCopy();
   const faqJsonLd = useFaqJsonLd();
   const pricePackages = usePricePackages();
   const [gearDialogOpen, setGearDialogOpen] = useState(false);
@@ -191,8 +193,8 @@ const Index = () => {
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
-        title={t('seo_home_title')}
-        description={t('seo_home_desc')}
+        title={copy.home.title}
+        description={copy.home.desc}
         page=""
         jsonLd={faqJsonLd}
       />
@@ -239,6 +241,27 @@ const Index = () => {
         </div>
       </section>
 
+      {/* About: keyword copy for the home page, with links to the voucher and podcast pages */}
+      <section id="about" className="py-12 md:py-16">
+        <div className="container mx-auto px-6 max-w-3xl">
+          <h2 className="text-2xl md:text-4xl font-bold text-center mb-6">{copy.home.aboutH2}</h2>
+          {copy.home.about.map((paragraph, i) => (
+            <p key={i} className="text-base md:text-lg text-muted-foreground mb-4">{paragraph}</p>
+          ))}
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 mt-6">
+            {(['voucher', 'podcast'] as const).map((slug) => (
+              <Link
+                key={slug}
+                to={pagePath(language, slug)}
+                className="inline-flex items-center gap-2 py-2 text-primary font-medium hover:underline"
+              >
+                {copy.ui[`nav_${slug}`]}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Gallery Section */}
       <section className="py-12 md:py-20 bg-card">

@@ -3,9 +3,12 @@ import { Speaker, Mic, Cable, Guitar } from 'lucide-react';
 import SEO from '@/components/SEO';
 import BookingCTA from '@/components/BookingCTA';
 import { pageUrl } from '@/i18n/config';
+import PageContent, { PageHeader, pageFaqJsonLd } from '@/components/PageContent';
+import { useCopy } from '@/i18n/content';
 
 const Rent = () => {
   const { language, t } = useLanguage();
+  const page = useCopy().rent;
 
   const equipment = [
     { icon: Speaker, title: t('rent_pa_title'), desc: t('rent_pa_desc') },
@@ -17,25 +20,25 @@ const Rent = () => {
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
-        title={t('seo_rent_title')}
-        description={t('seo_rent_desc')}
+        title={page.title}
+        description={page.desc}
         page="rent"
-        jsonLd={{
-          '@context': 'https://schema.org',
-          '@type': 'Service',
-          name: t('rent_title'),
-          serviceType: 'Music equipment rental',
-          provider: { '@id': 'https://sanctum-sa.com/#localbusiness' },
-          areaServed: { '@type': 'City', name: 'Warszawa' },
-          url: pageUrl(language, 'rent'),
-        }}
+        jsonLd={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Service',
+            name: page.h1,
+            serviceType: 'Music equipment rental',
+            provider: { '@id': 'https://sanctum-sa.com/#localbusiness' },
+            areaServed: { '@type': 'City', name: 'Warszawa' },
+            url: pageUrl(language, 'rent'),
+          },
+          pageFaqJsonLd(page.faq),
+        ]}
       />
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
         <div className="container mx-auto px-6">
-          <h1 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('rent_title')}</h1>
-          <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
-            {t('rent_desc')}
-          </p>
+          <PageHeader page={page} />
 
           <div className="grid gap-6 md:grid-cols-2 md:gap-8 max-w-5xl mx-auto">
             {equipment.map((item, index) => (
@@ -51,6 +54,7 @@ const Rent = () => {
           </div>
         </div>
       </section>
+      <PageContent page={page} />
       <BookingCTA />
     </div>
   );
