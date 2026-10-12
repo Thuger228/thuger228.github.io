@@ -50,7 +50,10 @@ const Index = () => {
   const pricePackages = usePricePackages();
   const [gearDialogOpen, setGearDialogOpen] = useState(false);
   const contactRef = useRef<HTMLElement>(null);
-  const [contactVisible, setContactVisible] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
+  // The floating Book/Contact bar shows only between the hero (which has its own buttons) and the contact section.
+  const [heroVisible, setHeroVisible] = useState(true);
+  const [contactReached, setContactReached] = useState(false);
 
   useEffect(() => {
     if (!contactRef.current) return;
@@ -72,11 +75,19 @@ const Index = () => {
     );
     observer.observe(contactRef.current);
     // Hide the floating Book/Contact buttons while the contact section is on screen.
-    const visibility = new IntersectionObserver(([entry]) => setContactVisible(entry.isIntersecting), { threshold: 0.05 });
-    visibility.observe(contactRef.current);
+    const contactWatch = new IntersectionObserver(
+      ([entry]) => setContactReached(entry.isIntersecting || entry.boundingClientRect.top < 0),
+      { threshold: 0 }
+    );
+    contactWatch.observe(contactRef.current);
+    const heroWatch = new IntersectionObserver(([entry]) => setHeroVisible(entry.isIntersecting), {
+      rootMargin: '0px 0px -35% 0px',
+    });
+    if (heroRef.current) heroWatch.observe(heroRef.current);
     return () => {
       observer.disconnect();
-      visibility.disconnect();
+      contactWatch.disconnect();
+      heroWatch.disconnect();
     };
   }, []);
 
@@ -206,7 +217,7 @@ const Index = () => {
         page=""
         jsonLd={faqJsonLd}
       />
-      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)]">
+      <section ref={heroRef} className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)]">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroBackground})` }}></div>
         <div className="absolute inset-0 bg-gradient-to-b from-background via-card to-background opacity-90"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
@@ -244,6 +255,18 @@ const Index = () => {
               <div className="text-4xl md:text-5xl lg:text-6xl font-bold">5★</div>
               <div className="text-sm md:text-base text-muted-foreground mt-1">{t('stat_rating')}</div>
             </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in">
+            <Button asChild size="lg" className="w-full max-w-xs sm:w-auto h-12 px-8 rounded-full text-base font-semibold">
+              <Link to={pagePath(language, 'booking')} className="relative">
+                <span>{t('book_button')}</span>
+                <ArrowRight className="absolute right-6 w-4 h-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full max-w-xs sm:w-auto h-12 px-8 rounded-full text-base font-semibold bg-background/40 backdrop-blur">
+              <a href="#contact">{t('nav_contact')}</a>
+            </Button>
           </div>
 
         </div>
@@ -447,34 +470,31 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Fixed Book Button */}
-      <Link to={pagePath(language, 'booking')} className={`fixed bottom-32 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 ${contactVisible ? 'opacity-0 pointer-events-none' : ''}`} aria-hidden={contactVisible} tabIndex={contactVisible ? -1 : undefined}>
-        <div className="relative animate-fade-in">
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
-          <Button 
-            size="lg" 
-            variant="outline"
-            className="group px-10 py-6 md:px-14 md:py-8 text-lg md:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 animate-pulse-subtle"
+      {/* Floating Book / Contact bar (between the hero and the contact section) */}
+      <div
+        className={`fixed inset-x-4 bottom-4 z-40 mx-auto max-w-sm pb-[env(safe-area-inset-bottom)] transition-all duration-300 ${
+          !heroVisible && !contactReached ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+        aria-hidden={!(!heroVisible && !contactReached)}
+      >
+        <div className="flex gap-1.5 rounded-full border border-border bg-background/80 p-1.5 shadow-2xl backdrop-blur-md">
+          <Link
+            to={pagePath(language, 'booking')}
+            tabIndex={!heroVisible && !contactReached ? undefined : -1}
+            className="group relative flex h-11 flex-1 items-center justify-center rounded-full bg-primary px-8 text-sm md:text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
-            {t('book_button') || 'Book'}
-            <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
-      </Link>
-
-      {/* Fixed Contact Button */}
-      <a href="#contact" className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 ${contactVisible ? 'opacity-0 pointer-events-none' : ''}`} aria-hidden={contactVisible} tabIndex={contactVisible ? -1 : undefined}>
-        <div className="relative animate-fade-in">
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
-          <Button 
-            size="lg" 
-            className="group px-10 py-6 md:px-14 md:py-8 text-lg md:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
+            <span>{t('book_button')}</span>
+            <ArrowRight className="absolute right-4 w-4 h-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          </Link>
+          <a
+            href="#contact"
+            tabIndex={!heroVisible && !contactReached ? undefined : -1}
+            className="flex h-11 flex-1 items-center justify-center rounded-full px-5 text-sm md:text-base font-semibold text-foreground transition-colors hover:bg-secondary"
           >
             {t('nav_contact')}
-            <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          </a>
         </div>
-      </a>
+      </div>
 
     </div>
   );
