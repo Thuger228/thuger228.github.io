@@ -30,6 +30,18 @@ import { TakenSlot, confirmPayment, fetchTakenSlots, holdSlot, releaseHold } fro
 // Remembers the visitor's language across the Stripe round trip. The backend now returns each visitor
 // to their own language's page; this still covers a return to the Polish /booking/?paid=1.
 const RETURN_LANG_KEY = 'sanctum_booking_lang';
+// The booking this visitor is paying for on Stripe, so its hold can be freed if they come back with the
+// browser's Back button instead of Stripe's own back link.
+const PENDING_KEY = 'sanctum_booking_pending';
+const takePending = () => {
+  try {
+    const ref = sessionStorage.getItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
+    return ref;
+  } catch {
+    return null;
+  }
+};
 
 const DATE_LOCALES = { pl, en: enGB, uk, be, ru };
 const INTL_LOCALES: Record<Language, string> = { pl: 'pl-PL', en: 'en-GB', uk: 'uk-UA', be: 'be-BY', ru: 'ru-RU' };
@@ -159,6 +171,7 @@ const BookingForm = () => {
   useEffect(() => {
     setNow(studioNow());
     const params = new URLSearchParams(window.location.search);
+    const pending = takePending();
     const cancelled = params.get('cancel');
     if (cancelled) {
       // Back from Stripe without paying: free the held slot, then load busy times without it.
@@ -166,7 +179,11 @@ const BookingForm = () => {
       releaseHold(cancelled).finally(() => setNow(studioNow()));
       return;
     }
-    if (params.get('paid') !== '1') return;
+    if (params.get('paid') !== '1') {
+      // Back from Stripe with the browser's Back button: free the slot this visitor was holding.
+      if (pending) releaseHold(pending).finally(() => setNow(studioNow()));
+      return;
+    }
     const sessionId = params.get('session_id');
     let returnLang: string | null = null;
     try {
@@ -182,6 +199,18 @@ const BookingForm = () => {
     if (sessionId) confirmPayment(sessionId);
     setDone('paid');
   }, [language, navigate]);
+
+  // Some phones restore the page from memory on Back (the pay button would still be spinning).
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      setLoading(false);
+      const pending = takePending();
+      if (pending) releaseHold(pending).finally(() => setNow(studioNow()));
+    };
+    window.addEventListener('pageshow', onShow);
+    return () => window.removeEventListener('pageshow', onShow);
+  }, []);
 
   // Busy times come from the Google Apps Script backend, which takes a few seconds to answer.
   // Both rooms load as soon as the page opens, so switching service doesn't wait again, and
@@ -280,6 +309,12 @@ const BookingForm = () => {
 
   const pickTime = async (slot: Slot) => {
     if (slot.taken || dayChecking || timeChecking !== undefined || !day) return;
+    // The page may have been open for hours: if this time is now inside the minimum notice, refresh.
+    const current = studioNow();
+    if (slotsForDay(day, durationMin, [], current).every((s) => s.start !== slot.start)) {
+      setNow(current);
+      return;
+    }
     setTimeChecking(slot.start);
     const fresh = await recheckDay(serviceId, day);
     setTimeChecking(undefined);
@@ -378,6 +413,7 @@ const BookingForm = () => {
     // 3. Pay on Stripe. The reference ties the payment to the booking (the backend marks it paid).
     try {
       sessionStorage.setItem(RETURN_LANG_KEY, language);
+      sessionStorage.setItem(PENDING_KEY, reference);
     } catch {
       // storage blocked: the visitor returns to the Polish page, which still shows the thank-you
     }
