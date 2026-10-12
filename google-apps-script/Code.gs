@@ -16,6 +16,7 @@
  */
 
 const TZ = 'Europe/Warsaw';
+const MIN_NOTICE_MINUTES = 240; // a booking must start at least 4 hours from now (same as the site)
 const HOLD_MINUTES = 30; // an unpaid booking holds its slot this long while the customer pays
 const KEEP_UNPAID_HOURS = 25; // a Stripe Payment Link checkout can be paid up to 24 h after it starts
 const SERVICE_LABELS = { recording: 'Nagrywanie', rehearsal: 'Sala prób' };
@@ -96,7 +97,7 @@ function book_(b) {
   }
   const start = at_(b.date, start_minute);
   const end = new Date(start.getTime() + duration * 60000);
-  if (start.getTime() < Date.now()) return { error: 'date_in_past' };
+  if (start.getTime() < Date.now() + MIN_NOTICE_MINUTES * 60000) return { error: 'too_soon' };
 
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);

@@ -67,7 +67,8 @@ export const holdSlot = async (args: {
       pay: args.pay,
     });
     if (res.ok) return 'held';
-    return res.error === 'slot_taken' ? 'slot_taken' : 'unavailable';
+    // too_soon: the time slipped inside the minimum notice while the form was open.
+    return res.error === 'slot_taken' || res.error === 'too_soon' ? 'slot_taken' : 'unavailable';
   } catch {
     return 'unavailable';
   }

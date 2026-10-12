@@ -83,4 +83,4 @@ export const OPENING_HOURS: Record<number, [string, string] | null> = {
 
 export const SLOT_STEP_MINUTES = 60; // how often a session can start (60 = on the hour)
 export const BOOK_AHEAD_DAYS = 60; // how far ahead customers can book
-export const MIN_NOTICE_MINUTES = 120; // earliest start: now + this
+export const MIN_NOTICE_MINUTES = 240; // earliest start: now + this (4 hours, set by the studio on 2026-10-12)

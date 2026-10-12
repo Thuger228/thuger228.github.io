@@ -85,7 +85,9 @@ const slotsForDay = (iso: string, durationMin: number, taken: TakenSlot[], now: 
   const hours = OPENING_HOURS[dateFromIso(iso).getDay()];
   if (!hours || iso < now.date) return [];
   const [open, close] = hours.map(toMinutes);
-  const earliest = iso === now.date ? now.minutes + MIN_NOTICE_MINUTES : 0;
+  // Minimum notice, carried into tomorrow when it runs past midnight.
+  const earliest =
+    iso === now.date ? now.minutes + MIN_NOTICE_MINUTES : iso === addDays(now.date, 1) ? now.minutes + MIN_NOTICE_MINUTES - 1440 : 0;
   const busy = taken.filter((t) => t.booking_date === iso);
   const slots: Slot[] = [];
   for (let start = open; start + durationMin <= close; start += SLOT_STEP_MINUTES) {
