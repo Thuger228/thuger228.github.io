@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import logo from '@/assets/logo.webp';
 import { ArrowRight, Mic2, Headphones, Music2, Radio, Guitar, Waves, Music, Drum, Speaker, Mic, Cable, Disc, Check, Eye, ListMusic } from 'lucide-react';
 import Gallery from '@/components/Gallery';
-import ContactForm from '@/components/ContactForm';
-import ContactDetails from '@/components/ContactDetails';
+import ContactDetails, { OpenNowBadge } from '@/components/ContactDetails';
+import { useContactCopy } from '@/i18n/content/contact';
 import FAQ, { useFaqJsonLd } from '@/components/FAQ';
 import { usePricePackages } from '@/data/prices';
 import { useCopy } from '@/i18n/content';
@@ -45,10 +45,12 @@ const MoreLink = ({ slug }: { slug: PageSlug }) => {
 const Index = () => {
   const { language, t } = useLanguage();
   const copy = useCopy();
+  const contactCopy = useContactCopy();
   const faqJsonLd = useFaqJsonLd();
   const pricePackages = usePricePackages();
   const [gearDialogOpen, setGearDialogOpen] = useState(false);
   const contactRef = useRef<HTMLElement>(null);
+  const [contactVisible, setContactVisible] = useState(false);
 
   useEffect(() => {
     if (!contactRef.current) return;
@@ -69,7 +71,13 @@ const Index = () => {
       { threshold: 0.3 }
     );
     observer.observe(contactRef.current);
-    return () => observer.disconnect();
+    // Hide the floating Book/Contact buttons while the contact section is on screen.
+    const visibility = new IntersectionObserver(([entry]) => setContactVisible(entry.isIntersecting), { threshold: 0.05 });
+    visibility.observe(contactRef.current);
+    return () => {
+      observer.disconnect();
+      visibility.disconnect();
+    };
   }, []);
 
   const studioGear = [
@@ -424,15 +432,15 @@ const Index = () => {
       <FAQ />
 
       {/* Contact Section */}
-      <section id="contact" ref={contactRef} className="py-12 md:py-20 bg-gradient-to-b from-background to-card">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 md:mb-6">{t('contact_title')}</h2>
-          <p className="text-base md:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10 md:mb-16">
-            {t('contact_subtitle')}
-          </p>
-
-          <div className="max-w-3xl mx-auto mb-8 md:mb-12">
-            <ContactForm />
+      <section id="contact" ref={contactRef} className="py-12 md:py-24 bg-gradient-to-b from-background to-card scroll-mt-16 md:scroll-mt-20">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center mb-8 md:mb-12">
+            <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-muted-foreground mb-4">{contactCopy.eyebrow}</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6">{t('contact_title')}</h2>
+            <p className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
+              {t('contact_subtitle')}
+            </p>
+            <OpenNowBadge />
           </div>
 
           <ContactDetails />
@@ -440,7 +448,7 @@ const Index = () => {
       </section>
 
       {/* Fixed Book Button */}
-      <Link to={pagePath(language, 'booking')} className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
+      <Link to={pagePath(language, 'booking')} className={`fixed bottom-32 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 ${contactVisible ? 'opacity-0 pointer-events-none' : ''}`} aria-hidden={contactVisible} tabIndex={contactVisible ? -1 : undefined}>
         <div className="relative animate-fade-in">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
           <Button 
@@ -455,7 +463,7 @@ const Index = () => {
       </Link>
 
       {/* Fixed Contact Button */}
-      <a href="#contact" className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40">
+      <a href="#contact" className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-40 transition-opacity duration-300 ${contactVisible ? 'opacity-0 pointer-events-none' : ''}`} aria-hidden={contactVisible} tabIndex={contactVisible ? -1 : undefined}>
         <div className="relative animate-fade-in">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
           <Button 

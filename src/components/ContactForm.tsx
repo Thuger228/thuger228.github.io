@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { contactCopy, useContactCopy, type ContactTopic } from '@/i18n/content/contact';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { CheckCircle2, Send } from 'lucide-react';
 import { z } from 'zod';
+
+const TOPICS: ContactTopic[] = ['rehearsal', 'recording', 'mixing', 'rent', 'voucher', 'other'];
 
 const schema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -14,20 +19,28 @@ const schema = z.object({
   message: z.string().trim().min(1).max(2000),
 });
 
+const EMPTY = { name: '', email: '', phone: '', message: '' };
+
 const ContactForm = () => {
-  const { t } = useLanguage();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const { language, t } = useLanguage();
+  const c = useContactCopy();
+  const [form, setForm] = useState(EMPTY);
+  const [topic, setTopic] = useState<ContactTopic | null>(null);
+  const [honey, setHoney] = useState(''); // spam trap, real visitors never see it
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
-      toast({ title: 'Invalid input', description: 'Please check your fields.', variant: 'destructive' });
+      toast({ title: t('contact_error_title'), description: t('contact_error_desc'), variant: 'destructive' });
       return;
     }
     setLoading(true);
     try {
+      // Topic goes to the studio in Polish, whatever language the visitor uses.
+      const topicLabel = topic ? `[${contactCopy.pl.topics[topic]}] ` : '';
       const res = await fetch('https://formsubmit.co/ajax/support@sanctum-sa.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -35,15 +48,20 @@ const ContactForm = () => {
           name: parsed.data.name,
           email: parsed.data.email,
           phone: parsed.data.phone,
+          topic: topic ? c.topics[topic] : '',
+          language: language.toUpperCase(),
           message: parsed.data.message,
-          _subject: `New contact from ${parsed.data.name} — Sanctum Sound`,
+          _subject: `${topicLabel}New contact from ${parsed.data.name} — Sanctum Sound`,
+          _replyto: parsed.data.email,
           _template: 'table',
           _captcha: 'false',
+          _honey: honey,
         }),
       });
       if (!res.ok) throw new Error('Failed');
-      toast({ title: t('contact_success_title'), description: t('contact_success_desc') });
-      setForm({ name: '', email: '', phone: '', message: '' });
+      setSent(true);
+      setForm(EMPTY);
+      setTopic(null);
     } catch {
       toast({ title: t('contact_error_title'), description: t('contact_error_desc'), variant: 'destructive' });
     } finally {
@@ -51,42 +69,107 @@ const ContactForm = () => {
     }
   };
 
+  if (sent) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-12" role="status">
+        <CheckCircle2 className="w-14 h-14 text-primary" />
+        <h3 className="text-2xl font-bold">{c.sent_title}</h3>
+        <p className="text-muted-foreground max-w-sm">{c.sent_text}</p>
+        <Button variant="outline" onClick={() => setSent(false)}>
+          {c.send_another}
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 md:p-8 space-y-4">
-      <Input
-        placeholder={t('contact_name')}
-        value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-        maxLength={100}
-        required
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <fieldset>
+        <legend className="text-sm font-medium mb-3">{c.topic_label}</legend>
+        <div className="flex flex-wrap gap-2">
+          {TOPICS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={topic === id}
+              onClick={() => setTopic(topic === id ? null : id)}
+              className={cn(
+                'rounded-full border px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                topic === id
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
+              )}
+            >
+              {c.topics[id]}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="contact-name">{t('contact_name')}</Label>
+          <Input
+            id="contact-name"
+            autoComplete="name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            maxLength={100}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contact-email">{t('contact_email')}</Label>
+          <Input
+            id="contact-email"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            maxLength={255}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contact-phone">{t('contact_phone')}</Label>
+          <Input
+            id="contact-phone"
+            type="tel"
+            autoComplete="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            maxLength={50}
+            required
+          />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="contact-message">{t('contact_message')}</Label>
+          <Textarea
+            id="contact-message"
+            placeholder={c.message_placeholder}
+            value={form.message}
+            onChange={(e) => setForm({ ...form, message: e.target.value })}
+            maxLength={2000}
+            rows={6}
+            required
+          />
+        </div>
+      </div>
+
+      <input
+        type="text"
+        name="_honey"
+        value={honey}
+        onChange={(e) => setHoney(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="hidden"
       />
-      <Input
-        type="email"
-        placeholder={t('contact_email')}
-        value={form.email}
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-        maxLength={255}
-        required
-      />
-      <Input
-        type="tel"
-        placeholder={t('contact_phone')}
-        value={form.phone}
-        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-        maxLength={50}
-        required
-      />
-      <Textarea
-        placeholder={t('contact_message')}
-        value={form.message}
-        onChange={(e) => setForm({ ...form, message: e.target.value })}
-        maxLength={2000}
-        rows={6}
-        required
-      />
+
       <Button type="submit" disabled={loading} className="w-full" size="lg">
         <Send className="w-4 h-4 mr-2" />
-        {loading ? '...' : t('contact_send')}
+        {loading ? c.sending : t('contact_send')}
       </Button>
     </form>
   );
