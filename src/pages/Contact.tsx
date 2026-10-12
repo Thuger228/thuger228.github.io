@@ -1,17 +1,14 @@
 import SEO from '@/components/SEO';
-import ContactDetails, { OpenNowBadge, STUDIO } from '@/components/ContactDetails';
+import ContactDetails, { STUDIO } from '@/components/ContactDetails';
 import PageContent, { pageFaqJsonLd } from '@/components/PageContent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { pageUrl } from '@/i18n/config';
 import { useCopy } from '@/i18n/content';
-import { useContactCopy } from '@/i18n/content/contact';
 import studioLounge from '@/assets/gallery/studio-lounge.webp';
 
 const Contact = () => {
   const { language } = useLanguage();
-  const copy = useCopy();
-  const c = useContactCopy();
-  const page = copy.contact;
+  const page = useCopy().contact;
 
   const contactPageJsonLd = {
     '@context': 'https://schema.org',
@@ -48,10 +45,8 @@ const Contact = () => {
         ></div>
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/85 to-background" aria-hidden="true"></div>
         <div className="container relative mx-auto px-6 pt-14 pb-10 md:pt-24 md:pb-16 text-center">
-          <p className="text-xs md:text-sm uppercase tracking-[0.25em] text-muted-foreground mb-4 animate-fade-in">{c.eyebrow}</p>
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-5 md:mb-6 max-w-4xl mx-auto animate-fade-in">{page.h1}</h1>
-          <p className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto mb-6 md:mb-8 animate-fade-in">{page.intro}</p>
-          <OpenNowBadge />
+          <p className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto animate-fade-in">{page.intro}</p>
         </div>
       </section>
 

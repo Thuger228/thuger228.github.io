@@ -84,7 +84,7 @@ const PhoneInput = ({ id, value, onChange, required }: PhoneInputProps) => {
 
   const full = country ? `${country.code} ${local}` : local;
   const invalid = touched && local.trim() !== '' && !isValidPhone(full);
-  const placeholder = iso === 'PL' ? '881 238 684' : iso === OTHER ? f.phone_other_placeholder : '';
+  const placeholder = iso === 'PL' ? '123 456 789' : iso === OTHER ? f.phone_other_placeholder : '';
 
   return (
     <div className="w-full min-w-0">
@@ -123,7 +123,7 @@ const PhoneInput = ({ id, value, onChange, required }: PhoneInputProps) => {
           onBlur={() => setTouched(true)}
           required={required}
           aria-invalid={invalid || undefined}
-          className="min-w-0 flex-1 bg-transparent px-3 text-base md:text-sm placeholder:text-muted-foreground focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent px-3 text-base md:text-sm placeholder:text-muted-foreground/40 focus:outline-none"
         />
       </div>
       {invalid && <p className="mt-1.5 text-xs text-destructive">{f.phone_invalid}</p>}

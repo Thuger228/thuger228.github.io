@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CalendarCheck, Check, Clock, Copy, Instagram, Link as LinkIcon, Mail, MapPin, Navigation, Phone, Star } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { pagePath } from '@/i18n/config';
 import { useContactCopy } from '@/i18n/content/contact';
-import { OPENING_HOURS, STUDIO_TIME_ZONE } from '@/data/booking';
 import { Button } from '@/components/ui/button';
 import ContactForm from '@/components/ContactForm';
 
@@ -23,55 +22,6 @@ export const STUDIO = {
   district: 'Praga-Południe',
   directionsUrl:
     'https://www.google.com/maps/dir/?api=1&destination=Aleja+Stan%C3%B3w+Zjednoczonych+67%2C+03-770+Warszawa',
-};
-
-// Is the studio open right now (Warsaw time)? null until mounted, because the page is pre-rendered.
-const useOpenNow = () => {
-  const [open, setOpen] = useState<boolean | null>(null);
-  useEffect(() => {
-    const check = () => {
-      const parts = new Intl.DateTimeFormat('en-GB', {
-        timeZone: STUDIO_TIME_ZONE,
-        weekday: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        hourCycle: 'h23',
-      }).formatToParts(new Date());
-      const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
-      const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(get('weekday'));
-      const hours = OPENING_HOURS[day];
-      if (!hours) return setOpen(false);
-      const now = get('hour') + ':' + get('minute');
-      setOpen(now >= hours[0] && now < hours[1]);
-    };
-    check();
-    const id = window.setInterval(check, 60_000);
-    return () => window.clearInterval(id);
-  }, []);
-  return open;
-};
-
-export const OpenNowBadge = () => {
-  const c = useContactCopy();
-  const open = useOpenNow();
-  return (
-    <span
-      className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 backdrop-blur px-4 py-1.5 text-sm"
-      aria-live="polite"
-    >
-      <span className="relative flex h-2.5 w-2.5">
-        {open && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />}
-        <span
-          className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-            open === null ? 'bg-muted-foreground' : open ? 'bg-emerald-400' : 'bg-red-400'
-          }`}
-        />
-      </span>
-      <span className="text-muted-foreground">
-        {open === null ? c.hours_value : open ? `${c.open_now} · ${c.hours_value}` : c.closed_now}
-      </span>
-    </span>
-  );
 };
 
 const CopyButton = ({ value }: { value: string }) => {

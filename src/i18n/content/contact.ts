@@ -8,14 +8,11 @@ import type { Language } from '@/i18n/config';
 export type ContactTopic = 'rehearsal' | 'recording' | 'mixing' | 'rent' | 'voucher' | 'other';
 
 export interface ContactCopy {
-  eyebrow: string; // small label above the heading
   call: string;
   write_email: string;
   instagram: string;
   book_online: string;
   book_online_value: string;
-  open_now: string;
-  closed_now: string; // shown outside opening hours
   hours_label: string;
   hours_value: string;
   address_label: string;
@@ -41,14 +38,11 @@ export interface ContactCopy {
 }
 
 const pl: ContactCopy = {
-  eyebrow: 'Sanctum Sound · Warszawa',
   call: 'Zadzwoń',
   write_email: 'Napisz e-mail',
   instagram: 'Instagram',
   book_online: 'Rezerwacja online',
   book_online_value: 'Wybierz termin',
-  open_now: 'Teraz otwarte',
-  closed_now: 'Teraz zamknięte · otwieramy o 9:00',
   hours_label: 'Godziny otwarcia',
   hours_value: 'Codziennie 9:00–24:00',
   address_label: 'Adres',
@@ -81,14 +75,11 @@ const pl: ContactCopy = {
 };
 
 const en: ContactCopy = {
-  eyebrow: 'Sanctum Sound · Warsaw',
   call: 'Call us',
   write_email: 'Email us',
   instagram: 'Instagram',
   book_online: 'Book online',
   book_online_value: 'Pick a time',
-  open_now: 'Open now',
-  closed_now: 'Closed now · opens at 9:00',
   hours_label: 'Opening hours',
   hours_value: 'Every day 9:00–24:00',
   address_label: 'Address',
@@ -121,14 +112,11 @@ const en: ContactCopy = {
 };
 
 const uk: ContactCopy = {
-  eyebrow: 'Sanctum Sound · Варшава',
   call: 'Зателефонувати',
   write_email: 'Написати e-mail',
   instagram: 'Instagram',
   book_online: 'Онлайн-бронювання',
   book_online_value: 'Обрати час',
-  open_now: 'Зараз відчинено',
-  closed_now: 'Зараз зачинено · відчиняємо о 9:00',
   hours_label: 'Години роботи',
   hours_value: 'Щодня 9:00–24:00',
   address_label: 'Адреса',
@@ -161,14 +149,11 @@ const uk: ContactCopy = {
 };
 
 const be: ContactCopy = {
-  eyebrow: 'Sanctum Sound · Варшава',
   call: 'Патэлефанаваць',
   write_email: 'Напісаць e-mail',
   instagram: 'Instagram',
   book_online: 'Анлайн-браніраванне',
   book_online_value: 'Выбраць час',
-  open_now: 'Зараз адчынена',
-  closed_now: 'Зараз зачынена · адчыняем у 9:00',
   hours_label: 'Гадзіны працы',
   hours_value: 'Штодня 9:00–24:00',
   address_label: 'Адрас',
@@ -201,14 +186,11 @@ const be: ContactCopy = {
 };
 
 const ru: ContactCopy = {
-  eyebrow: 'Sanctum Sound · Варшава',
   call: 'Позвонить',
   write_email: 'Написать e-mail',
   instagram: 'Instagram',
   book_online: 'Онлайн-бронирование',
   book_online_value: 'Выбрать время',
-  open_now: 'Сейчас открыто',
-  closed_now: 'Сейчас закрыто · открываемся в 9:00',
   hours_label: 'Часы работы',
   hours_value: 'Ежедневно 9:00–24:00',
   address_label: 'Адрес',
