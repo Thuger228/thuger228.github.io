@@ -18,17 +18,17 @@ export interface BookingService {
 
 export const BOOKING_SERVICES: BookingService[] = [
   {
-    id: 'recording',
-    pricePerUnit: 120,
-    unit: 'hour',
-    needsSlot: false, // a request: the studio writes or calls back to agree the date (set by the studio on 2026-10-12)
-    maxQuantity: 12,
-  },
-  {
     id: 'rehearsal',
     pricePerUnit: 60, // set by the studio on 2026-10-12
     unit: 'hour',
     needsSlot: true,
+    maxQuantity: 12,
+  },
+  {
+    id: 'recording',
+    pricePerUnit: 120,
+    unit: 'hour',
+    needsSlot: false, // a request: the studio writes or calls back to agree the date (set by the studio on 2026-10-12)
     maxQuantity: 12,
   },
   {
@@ -40,13 +40,14 @@ export const BOOKING_SERVICES: BookingService[] = [
   },
 ];
 
-// Rehearsal room extras, added to the hourly price (set by the studio on 2026-10-12).
-// Keep in line with REHEARSAL.options in Code.gs.
+// Rehearsal room extras (set by the studio on 2026-10-12): cymbals and the double pedal are a fixed
+// charge per rehearsal; "drums or vocals only" lowers the hourly price. Keep in line with
+// REHEARSAL.options in Code.gs.
 export type RehearsalOptionId = 'cymbals' | 'double_pedal' | 'solo';
-export const REHEARSAL_OPTIONS: { id: RehearsalOptionId; pricePerHour: number }[] = [
-  { id: 'cymbals', pricePerHour: 10 },
-  { id: 'double_pedal', pricePerHour: 5 },
-  { id: 'solo', pricePerHour: -10 }, // drums only or vocals only
+export const REHEARSAL_OPTIONS: { id: RehearsalOptionId; price: number; perHour: boolean }[] = [
+  { id: 'cymbals', price: 10, perHour: false },
+  { id: 'double_pedal', price: 5, perHour: false },
+  { id: 'solo', price: -10, perHour: true }, // drums only or vocals only
 ];
 
 // Booking backend: the Google Apps Script web app from google-apps-script/Code.gs, deployed in the

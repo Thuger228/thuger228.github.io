@@ -118,7 +118,7 @@ const BookingForm = () => {
   const { form: c } = useBookingCopy();
   const navigate = useNavigate();
 
-  const [serviceId, setServiceId] = useState<BookingServiceId>('recording');
+  const [serviceId, setServiceId] = useState<BookingServiceId>('rehearsal');
   const [quantity, setQuantity] = useState(1);
   const [options, setOptions] = useState<RehearsalOptionId[]>([]);
   const [day, setDay] = useState<string>();
@@ -135,11 +135,13 @@ const BookingForm = () => {
   // Rehearsal extras change the hourly price. Recording and mixing have no date or quantity: they're
   // requests the studio answers by email or phone. Only slot bookings are paid online.
   const chosenOptions = service.id === 'rehearsal' ? REHEARSAL_OPTIONS.filter((o) => options.includes(o.id)) : [];
-  const perHour = service.pricePerUnit + chosenOptions.reduce((sum, o) => sum + o.pricePerHour, 0);
-  const total = perHour * quantity;
+  const perHour = service.pricePerUnit + chosenOptions.reduce((sum, o) => sum + (o.perHour ? o.price : 0), 0);
+  const fixedExtras = chosenOptions.reduce((sum, o) => sum + (o.perHour ? 0 : o.price), 0);
+  const total = perHour * quantity + fixedExtras;
   const payOnline = service.needsSlot;
   const optionName = (id: RehearsalOptionId) => c[`opt_${id}`];
-  const optionPrice = (n: number) => `${n > 0 ? '+' : '−'}${Math.abs(n)} zł${t('unit_hour')}`;
+  const optionPrice = (o: (typeof REHEARSAL_OPTIONS)[number]) =>
+    `${o.price > 0 ? '+' : '−'}${Math.abs(o.price)} zł${o.perHour ? t('unit_hour') : ''}`;
   const toggleOption = (id: RehearsalOptionId) =>
     setOptions((cur) => (cur.includes(id) ? cur.filter((o) => o !== id) : [...cur, id]));
   const requestCopy =
@@ -332,7 +334,7 @@ const BookingForm = () => {
           date: slotDay ?? '-',
           start_time: slotStart === undefined ? '-' : `${formatMinutes(slotStart)}–${formatMinutes(slotStart + durationMin)}`,
           quantity: service.needsSlot ? `${quantity} × ${perHour} zł${unitLabel(serviceId)}` : '-',
-          extras: chosenOptions.length ? chosenOptions.map((o) => `${optionName(o.id)} (${optionPrice(o.pricePerHour)})`).join(', ') : '-',
+          extras: chosenOptions.length ? chosenOptions.map((o) => `${optionName(o.id)} (${optionPrice(o)})`).join(', ') : '-',
           total: service.needsSlot ? `${total} zł` : `to agree (from ${service.pricePerUnit} zł${unitLabel(serviceId)})`,
           name: parsed.data.name,
           email: parsed.data.email,
@@ -418,7 +420,7 @@ const BookingForm = () => {
                 </li>
                 {chosenOptions.map((o) => (
                   <li key={o.id} className="pl-6">
-                    {optionName(o.id)} ({optionPrice(o.pricePerHour)})
+                    {optionName(o.id)} ({optionPrice(o)})
                   </li>
                 ))}
               </>
@@ -569,7 +571,7 @@ const BookingForm = () => {
                 />
                 <span>
                   <span className="block font-semibold text-sm">{optionName(o.id)}</span>
-                  <span className="block text-sm text-muted-foreground">{optionPrice(o.pricePerHour)}</span>
+                  <span className="block text-sm text-muted-foreground">{optionPrice(o)}</span>
                 </span>
               </label>
             ))}

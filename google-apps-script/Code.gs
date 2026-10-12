@@ -24,13 +24,14 @@ const KEEP_UNPAID_HOURS = 25; // unpaid bookings stay in the calendar (as expire
 const SERVICE_LABELS = { recording: 'Nagrywanie', rehearsal: 'Sala prób' };
 const SITE = 'https://sanctum-sa.com';
 
-// Rehearsal room prices in PLN per hour, charged on Stripe. Keep in line with src/data/booking.ts.
+// Rehearsal room prices in PLN, charged on Stripe. Keep in line with src/data/booking.ts.
+// perHour extras change the hourly price; the others are a fixed charge per rehearsal.
 const REHEARSAL = {
   perHour: 60,
   options: {
-    cymbals: { price: 10, label: 'zestaw talerzy' },
-    double_pedal: { price: 5, label: 'podwójna stopa' },
-    solo: { price: -10, label: 'tylko perkusja lub wokal' },
+    cymbals: { price: 10, perHour: false, label: 'zestaw talerzy' },
+    double_pedal: { price: 5, perHour: false, label: 'podwójna stopa' },
+    solo: { price: -10, perHour: true, label: 'tylko perkusja lub wokal' },
   },
 };
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -117,8 +118,12 @@ function book_(b) {
   const hours = duration / 60;
   const options = Object.keys(REHEARSAL.options).filter((k) => (b.options || []).indexOf(k) >= 0);
   const priced = b.service === 'rehearsal' && hours === Math.floor(hours);
-  const perHour = priced ? options.reduce((sum, k) => sum + REHEARSAL.options[k].price, REHEARSAL.perHour) : 0;
-  const amount = perHour * hours;
+  const opt = (k) => REHEARSAL.options[k];
+  const hourly = options.filter((k) => opt(k).perHour);
+  const fixed = options.filter((k) => !opt(k).perHour);
+  const perHour = priced ? hourly.reduce((sum, k) => sum + opt(k).price, REHEARSAL.perHour) : 0;
+  const fixedTotal = priced ? fixed.reduce((sum, k) => sum + opt(k).price, 0) : 0;
+  const amount = perHour * hours + fixedTotal;
   const checkout = Boolean(b.checkout) && priced && amount > 0;
 
   const name = clip_(b.name, 100);
@@ -137,7 +142,8 @@ function book_(b) {
         'Telefon: ' + clip_(b.phone, 50),
         'E-mail: ' + clip_(b.email, 255),
         priced
-          ? 'Kwota: ' + amount + ' zł (' + hours + ' × ' + perHour + ' zł/h)' + (checkout ? ', płatność Stripe' : ', płatność do ustalenia')
+          ? 'Kwota: ' + amount + ' zł (' + hours + ' × ' + perHour + ' zł/h' + (fixedTotal ? ' + ' + fixedTotal + ' zł' : '') + ')' +
+            (checkout ? ', płatność Stripe' : ', płatność do ustalenia')
           : 'Kwota: do ustalenia',
         'Dodatki: ' + (options.map((k) => REHEARSAL.options[k].label).join(', ') || '-'),
         'Uwagi: ' + (clip_(b.notes, 2000) || '-'),
@@ -157,7 +163,7 @@ function book_(b) {
   // Stripe Checkout for the exact amount. If Stripe isn't set up or refuses, the booking stays as a
   // request the studio confirms by hand.
   const page = /^\/(?:(?:en|uk|be|ru)\/)?booking\/$/.test(b.return_path || '') ? b.return_path : '/booking/';
-  const session = stripePost_('checkout/sessions', {
+  const params = {
     mode: 'payment',
     client_reference_id: b.reference,
     customer_email: clip_(b.email, 255),
@@ -169,9 +175,18 @@ function book_(b) {
     'line_items[0][price_data][currency]': 'pln',
     'line_items[0][price_data][unit_amount]': String(perHour * 100),
     'line_items[0][price_data][product_data][name]':
-      'Sala prób — 1 godz.' + (options.length ? ' (' + options.map((k) => REHEARSAL.options[k].label).join(', ') + ')' : ''),
+      'Sala prób — 1 godz.' + (hourly.length ? ' (' + hourly.map((k) => opt(k).label).join(', ') + ')' : ''),
     'line_items[0][price_data][product_data][description]': b.date + ', ' + pad_(Math.floor(start_minute / 60)) + ':' + pad_(start_minute % 60),
+  };
+  // Fixed extras: one line each, charged once per rehearsal.
+  fixed.forEach((k, i) => {
+    const line = 'line_items[' + (i + 1) + ']';
+    params[line + '[quantity]'] = '1';
+    params[line + '[price_data][currency]'] = 'pln';
+    params[line + '[price_data][unit_amount]'] = String(opt(k).price * 100);
+    params[line + '[price_data][product_data][name]'] = 'Sala prób: ' + opt(k).label;
   });
+  const session = stripePost_('checkout/sessions', params);
   if (!session || !session.url) {
     ev.setTag('sanctumStatus', 'request');
     ev.setTitle('📝 Do potwierdzenia: ' + label + ' — ' + name);
