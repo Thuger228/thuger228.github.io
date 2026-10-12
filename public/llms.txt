@@ -1,6 +1,6 @@
 # Sanctum Sound
 
-> Studio nagrań i sala prób w Warszawie (Aleja Stanów Zjednoczonych 67, 03-770 Warszawa, Praga-Południe). Recording studio and rehearsal room in Warsaw: vocal and instrument recording, mixing and mastering, music production, rehearsal room rental and equipment rental. Phone: +48 881 238 684.
+> Studio nagrań i sala prób w Warszawie (Aleja Stanów Zjednoczonych 67, 03-770 Warszawa, Praga-Południe). Recording studio and rehearsal room in Warsaw: vocal and instrument recording, mixing and mastering, music production, rehearsal room rental and equipment rental. Phone: +48 881 238 684. Email: support@sanctum-sa.com. Open every day 9:00–24:00.
 
 ## Strony (PL)
 
@@ -8,10 +8,10 @@
 - [Nagrywanie](https://sanctum-sa.com/recording/): Nagrywanie wokalu i instrumentów, miks, mastering i produkcja.
 - [Sala prób](https://sanctum-sa.com/rehearsals/): Wyciszona sala prób z pełnym backline'em i nagłośnieniem 800 W.
 - [Wynajem sprzętu](https://sanctum-sa.com/rent/): Nagłośnienie, mikrofony, wzmacniacze i sprzęt sceniczny.
-- [Cennik](https://sanctum-sa.com/price/): Nagrywanie od 120 zł/godz., sala prób od 50 zł/godz., miks i mastering od 400 zł/utwór.
+- [Cennik](https://sanctum-sa.com/price/): Nagrywanie od 120 zł/godz., sala prób od 60 zł/godz., miks i mastering od 400 zł/utwór.
 - [Kontakt](https://sanctum-sa.com/contact/): Adres, telefon, formularz i mapa.
 - [Voucher](https://sanctum-sa.com/voucher/): Voucher na nagranie piosenki w studio jako prezent.
-- [Rezerwacja online](https://sanctum-sa.com/booking/): Rezerwacja nagrania, sali prób albo miksu i masteringu z płatnością online (Stripe).
+- [Rezerwacja online](https://sanctum-sa.com/booking/): Sala prób: wybór terminu w kalendarzu i płatność online (Stripe). Nagranie oraz miks i mastering: formularz zapytania, oddzwaniamy.
 
 ## Other languages
 

@@ -61,7 +61,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   pl: {
     page: {
       title: 'Rezerwacja online — studio nagrań i sala prób | Sanctum',
-      desc: 'Zarezerwuj nagranie (od 120 zł/h), salę prób (od 50 zł/h) albo miks i mastering (od 400 zł) w Sanctum Sound w Warszawie i zapłać online przez Stripe.',
+      desc: 'Zarezerwuj nagranie (od 120 zł/h), salę prób (od 60 zł/h) albo miks i mastering (od 400 zł) w Sanctum Sound w Warszawie i zapłać online przez Stripe.',
       h1: 'Rezerwacja online',
       intro: 'Salę prób rezerwujesz od razu: wybierz czas trwania i dodatki, wskaż wolny termin w kalendarzu i zapłać online. Nagranie oraz miks i mastering to krótkie zapytanie: zostaw kontakt, a odpiszemy lub oddzwonimy, żeby ustalić szczegóły.',
       sections: [
@@ -128,7 +128,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   en: {
     page: {
       title: 'Book Online — Recording Studio Warsaw | Sanctum Sound',
-      desc: 'Book recording (from 120 PLN/h), the rehearsal room (from 50 PLN/h) or mixing and mastering (from 400 PLN) at Sanctum Sound in Warsaw and pay online with Stripe.',
+      desc: 'Book recording (from 120 PLN/h), the rehearsal room (from 60 PLN/h) or mixing and mastering (from 400 PLN) at Sanctum Sound in Warsaw and pay online with Stripe.',
       h1: 'Book online',
       intro: 'Book the rehearsal room straight away: choose how long and any extras, pick a free time in the calendar and pay online. For recording or mixing and mastering, send a short request and we’ll write or call you back to agree the details.',
       sections: [
@@ -195,7 +195,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   uk: {
     page: {
       title: 'Онлайн-бронювання — студія звукозапису Sanctum, Варшава',
-      desc: 'Забронюйте запис (від 120 zł/год), репетиційну залу (від 50 zł/год) або зведення і мастеринг (від 400 zł) у Sanctum Sound у Варшаві та оплатіть онлайн через Stripe.',
+      desc: 'Забронюйте запис (від 120 zł/год), репетиційну залу (від 60 zł/год) або зведення і мастеринг (від 400 zł) у Sanctum Sound у Варшаві та оплатіть онлайн через Stripe.',
       h1: 'Онлайн-бронювання',
       intro: 'Репетиційну залу можна забронювати одразу: оберіть тривалість і додатки, виберіть вільний час у календарі та оплатіть онлайн. Для запису або зведення і мастерингу надішліть короткий запит, і ми напишемо або зателефонуємо, щоб узгодити деталі.',
       sections: [
@@ -262,7 +262,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   be: {
     page: {
       title: 'Анлайн-браніраванне — студыя гуказапісу Sanctum, Варшава',
-      desc: 'Забраніруйце запіс (ад 120 zł/гадз), рэпетыцыйную залу (ад 50 zł/гадз) або зводку і мастэрынг (ад 400 zł) у Sanctum Sound у Варшаве і аплаціце анлайн праз Stripe.',
+      desc: 'Забраніруйце запіс (ад 120 zł/гадз), рэпетыцыйную залу (ад 60 zł/гадз) або зводку і мастэрынг (ад 400 zł) у Sanctum Sound у Варшаве і аплаціце анлайн праз Stripe.',
       h1: 'Анлайн-браніраванне',
       intro: 'Рэпетыцыйную залу можна забраніраваць адразу: выберыце працягласць і дадаткі, абярыце вольны час у календары і аплаціце анлайн. Для запісу або зводкі і мастэрынгу дашліце кароткі запыт, і мы напішам або патэлефануем, каб узгадніць дэталі.',
       sections: [
@@ -329,7 +329,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   ru: {
     page: {
       title: 'Онлайн-бронирование — студия звукозаписи Sanctum, Варшава',
-      desc: 'Забронируйте запись (от 120 zł/час), репетиционную комнату (от 50 zł/час) или сведение и мастеринг (от 400 zł) в Sanctum Sound в Варшаве и оплатите онлайн через Stripe.',
+      desc: 'Забронируйте запись (от 120 zł/час), репетиционную комнату (от 60 zł/час) или сведение и мастеринг (от 400 zł) в Sanctum Sound в Варшаве и оплатите онлайн через Stripe.',
       h1: 'Онлайн-бронирование',
       intro: 'Репетиционную комнату можно забронировать сразу: выберите длительность и дополнения, укажите свободное время в календаре и оплатите онлайн. Для записи или сведения и мастеринга отправьте короткий запрос, и мы напишем или перезвоним, чтобы согласовать детали.',
       sections: [
