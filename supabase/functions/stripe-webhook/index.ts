@@ -1,4 +1,5 @@
-// Stripe webhook: marks a booking as paid when its Payment Link checkout completes.
+// Stripe webhook: marks a booking as paid when its Payment Link checkout completes, and adds it to
+// the studio's Google Calendar when that is set up (see ../_shared/google-calendar.ts).
 //
 // Stripe → Developers → Webhooks → Add endpoint:
 //   URL:    https://<project-ref>.supabase.co/functions/v1/stripe-webhook
@@ -7,6 +8,7 @@
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { addBookingEvent, googleCalendarConfigured } from "../_shared/google-calendar.ts";
 
 const encoder = new TextEncoder();
 
@@ -52,14 +54,26 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { error } = await supabase
+  const { data: rows, error } = await supabase
     .from("bookings")
     .update({ status: "paid", paid_at: new Date().toISOString(), stripe_session_id: session.id })
     .eq("reference", session.client_reference_id)
-    .neq("status", "cancelled");
+    .neq("status", "cancelled")
+    .select();
   if (error) {
     console.error("Failed to mark booking paid", session.client_reference_id, error);
     return new Response("Database error", { status: 500 }); // Stripe retries
+  }
+
+  // A calendar problem must not lose the payment confirmation, so it's only logged.
+  if (googleCalendarConfigured()) {
+    for (const booking of rows ?? []) {
+      try {
+        await addBookingEvent(booking);
+      } catch (e) {
+        console.error("Failed to add booking to Google Calendar", booking.reference, e);
+      }
+    }
   }
   return new Response(JSON.stringify({ received: true }), { status: 200 });
 });

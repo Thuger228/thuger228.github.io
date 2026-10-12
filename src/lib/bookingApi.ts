@@ -27,14 +27,29 @@ const rpc = async (fn: string, args: object) => {
   return res.json();
 };
 
-// Returns null when availability can't be loaded (e.g. the database isn't set up yet): the calendar
-// then shows every slot in opening hours as free and the studio confirms by hand.
+// Busy times in the studio's Google Calendar (supabase/functions/calendar-busy). They block every service.
+const fetchCalendarBusy = async (from: string, to: string): Promise<TakenSlot[]> => {
+  if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('not_configured');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/calendar-busy?from=${from}&to=${to}`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+  });
+  if (!res.ok) throw new Error(`http_${res.status}`);
+  return res.json();
+};
+
+// Taken times = bookings made on the site + busy times in Google Calendar. Returns null when neither
+// can be loaded (e.g. nothing is set up yet): the calendar then shows every slot in opening hours as
+// free and the studio confirms by hand.
 export const fetchTakenSlots = async (service: BookingServiceId, from: string, to: string): Promise<TakenSlot[] | null> => {
-  try {
-    return (await rpc('booked_slots', { p_service: service, p_from: from, p_to: to })) as TakenSlot[];
-  } catch {
-    return null;
-  }
+  const [booked, busy] = await Promise.allSettled([
+    rpc('booked_slots', { p_service: service, p_from: from, p_to: to }) as Promise<TakenSlot[]>,
+    fetchCalendarBusy(from, to),
+  ]);
+  if (booked.status === 'rejected' && busy.status === 'rejected') return null;
+  return [
+    ...(booked.status === 'fulfilled' ? booked.value : []),
+    ...(busy.status === 'fulfilled' ? busy.value : []),
+  ];
 };
 
 export type HoldResult = 'held' | 'slot_taken' | 'unavailable';

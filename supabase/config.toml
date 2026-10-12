@@ -3,3 +3,7 @@ project_id = "gusqfyubukmjigjfzghl"
 # Stripe calls this webhook without a Supabase login; it checks the Stripe signature instead.
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Read by the booking page with the public key; returns busy times only, no event details.
+[functions.calendar-busy]
+verify_jwt = false
