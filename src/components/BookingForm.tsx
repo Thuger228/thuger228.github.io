@@ -501,7 +501,7 @@ const BookingForm = () => {
   // ---- step 1: service, duration, day and time ----
   return (
     <div ref={topRef} className="scroll-mt-28 bg-card border border-border rounded-lg p-6 md:p-8 space-y-6">
-      <div className="grid gap-4 md:grid-cols-[1fr_180px] md:items-end">
+      <div className="space-y-5">
         <fieldset>
           <legend className="text-sm font-medium mb-2">{c.service}</legend>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -529,31 +529,36 @@ const BookingForm = () => {
           </div>
         </fieldset>
         {service.needsSlot && (
-          <div className="space-y-2">
-            <Label htmlFor="booking-qty">{c.duration}</Label>
-            <select
-              id="booking-qty"
-              value={quantity}
-              onChange={(e) => {
-                setQuantity(Number(e.target.value));
-                setStart(undefined);
-              }}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
-            >
+          <fieldset>
+            <legend className="text-sm font-medium mb-2">{c.duration}</legend>
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-2">
               {Array.from({ length: service.maxQuantity }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
+                <button
+                  key={n}
+                  type="button"
+                  aria-pressed={n === quantity}
+                  onClick={() => {
+                    setQuantity(n);
+                    setStart(undefined);
+                  }}
+                  className={`h-11 rounded-md border text-sm font-semibold transition-colors ${
+                    n === quantity
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
                   {n} h
-                </option>
+                </button>
               ))}
-            </select>
-          </div>
+            </div>
+          </fieldset>
         )}
       </div>
 
       {service.id === 'rehearsal' && (
         <fieldset>
           <legend className="text-sm font-medium mb-2">
-            {c.extras} <span className="text-muted-foreground font-normal">· {perHour} zł{t('unit_hour')}</span>
+            {c.extras}
           </legend>
           <div className="grid gap-3 sm:grid-cols-3">
             {REHEARSAL_OPTIONS.map((o) => (
