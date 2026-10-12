@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { be, enGB, pl, ru, uk } from 'date-fns/locale';
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock, CreditCard, Send } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock, CreditCard, Loader2, Send } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -121,7 +121,7 @@ const BookingForm = () => {
   const [step, setStep] = useState<'pick' | 'details'>('pick');
   const [contact, setContact] = useState({ name: '', email: '', phone: '', notes: '' });
   const [now, setNow] = useState<{ date: string; minutes: number }>();
-  const [taken, setTaken] = useState<TakenSlot[]>([]);
+  const [busy, setBusy] = useState<Partial<Record<BookingServiceId, { loading: boolean; slots: TakenSlot[] }>>>({});
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<'paid' | 'requested' | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
@@ -155,16 +155,28 @@ const BookingForm = () => {
     setDone('paid');
   }, [language, navigate]);
 
-  const loadTaken = useCallback(async () => {
-    if (!now || !service.needsSlot) return;
-    const slots = await fetchTakenSlots(serviceId, now.date, addDays(now.date, BOOK_AHEAD_DAYS));
-    setTaken(slots ?? []);
-  }, [now, serviceId, service.needsSlot]);
+  // Busy times come from the Google Apps Script backend, which takes a few seconds to answer.
+  // Both rooms load as soon as the page opens, so switching service doesn't wait again, and
+  // times stay hidden behind a loader until the answer arrives instead of showing as free.
+  const loadBusy = useCallback(
+    async (id: BookingServiceId) => {
+      if (!now) return;
+      setBusy((b) => ({ ...b, [id]: { loading: true, slots: b[id]?.slots ?? [] } }));
+      const slots = await fetchTakenSlots(id, now.date, addDays(now.date, BOOK_AHEAD_DAYS));
+      setBusy((b) => ({ ...b, [id]: { loading: false, slots: slots ?? [] } }));
+    },
+    [now]
+  );
 
   useEffect(() => {
-    setTaken([]);
-    loadTaken();
-  }, [loadTaken]);
+    BOOKING_SERVICES.filter((s) => s.needsSlot).forEach((s) => loadBusy(s.id));
+  }, [loadBusy]);
+
+  const loadTaken = () => {
+    if (service.needsSlot) loadBusy(serviceId);
+  };
+  const checking = service.needsSlot && (busy[serviceId]?.loading ?? true);
+  const taken = useMemo(() => busy[serviceId]?.slots ?? [], [busy, serviceId]);
 
   // Keep the step that just changed in view (the details step and thank-you panel are shorter).
   const scrollTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -182,7 +194,8 @@ const BookingForm = () => {
     if (!now || !lastDay) return true;
     const iso = isoFromDate(d);
     if (iso < now.date || iso > lastDay) return true;
-    return !slotsForDay(iso, durationMin, taken, now).some((s) => !s.taken);
+    // While busy times load, only closed or past days are greyed out.
+    return !slotsForDay(iso, durationMin, checking ? [] : taken, now).some((s) => !s.taken);
   };
 
   const formatDay = (iso: string) =>
@@ -196,7 +209,7 @@ const BookingForm = () => {
   };
 
   const pickTime = (slot: Slot) => {
-    if (slot.taken) return;
+    if (slot.taken || checking) return;
     setStart(slot.start);
     setStep('details');
     scrollTop();
@@ -504,6 +517,18 @@ const BookingForm = () => {
             </h2>
             {!day ? (
               <p className="text-sm text-muted-foreground">{c.pick_day_hint}</p>
+            ) : checking ? (
+              <div role="status" aria-live="polite">
+                <p className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  {c.checking}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-hidden="true">
+                  {daySlots.slice(0, 9).map((slot) => (
+                    <div key={slot.start} className="h-11 rounded-md bg-muted/40 animate-pulse" />
+                  ))}
+                </div>
+              </div>
             ) : daySlots.every((s) => s.taken) ? (
               <p className="text-sm text-muted-foreground">{c.no_slots}</p>
             ) : (

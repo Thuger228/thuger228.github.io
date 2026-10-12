@@ -34,6 +34,7 @@ export interface BookingFormCopy {
   free_times: string; // heading above the time slots
   pick_day_hint: string; // shown in the times column before a day is chosen
   no_slots: string;
+  checking: string; // shown while busy times load
   taken: string; // label on a time that's already booked
   back: string;
   your_details: string;
@@ -94,6 +95,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       pick_day: 'Wybierz dzień',
       free_times: 'Wolne godziny',
       pick_day_hint: 'Wybierz dzień w kalendarzu, żeby zobaczyć wolne godziny.',
+      checking: 'Sprawdzam wolne terminy…',
       no_slots: 'Brak wolnych godzin w tym dniu. Wybierz inny dzień.',
       taken: 'zajęte',
       back: 'Wstecz',
@@ -150,6 +152,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       pick_day: 'Choose a day',
       free_times: 'Available times',
       pick_day_hint: 'Pick a day in the calendar to see available times.',
+      checking: 'Checking free times…',
       no_slots: 'No free times on this day. Please choose another day.',
       taken: 'booked',
       back: 'Back',
@@ -206,6 +209,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       pick_day: 'Оберіть день',
       free_times: 'Вільний час',
       pick_day_hint: 'Оберіть день у календарі, щоб побачити вільний час.',
+      checking: 'Перевіряємо вільний час…',
       no_slots: 'На цей день вільного часу немає. Оберіть інший день.',
       taken: 'зайнято',
       back: 'Назад',
@@ -262,6 +266,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       pick_day: 'Выберыце дзень',
       free_times: 'Вольны час',
       pick_day_hint: 'Выберыце дзень у календары, каб убачыць вольны час.',
+      checking: 'Правяраем вольны час…',
       no_slots: 'На гэты дзень вольнага часу няма. Выберыце іншы дзень.',
       taken: 'занята',
       back: 'Назад',
@@ -318,6 +323,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       pick_day: 'Выберите день',
       free_times: 'Свободное время',
       pick_day_hint: 'Выберите день в календаре, чтобы увидеть свободное время.',
+      checking: 'Проверяем свободное время…',
       no_slots: 'На этот день свободного времени нет. Выберите другой день.',
       taken: 'занято',
       back: 'Назад',
