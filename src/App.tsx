@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { LANGUAGES, PageSlug, pagePath } from "@/i18n/config";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Recording from "./pages/Recording";
 import Rehearsals from "./pages/Rehearsals";
@@ -14,7 +15,6 @@ import Rent from "./pages/Rent";
 import Price from "./pages/Price";
 import Contact from "./pages/Contact";
 import Voucher from "./pages/Voucher";
-import Podcast from "./pages/Podcast";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +27,6 @@ const pageComponents: Record<PageSlug, () => JSX.Element> = {
   price: Price,
   contact: Contact,
   voucher: Voucher,
-  podcast: Podcast,
 };
 
 // Shared between the browser (BrowserRouter) and the build-time pre-renderer (StaticRouter).
@@ -37,6 +36,7 @@ export const AppShell = () => (
       <LanguageProvider>
         <Toaster />
         <Sonner />
+        <ScrollToTop />
         <Header />
         <Routes>
           {LANGUAGES.flatMap((lang) =>

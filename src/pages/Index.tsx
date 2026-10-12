@@ -241,7 +241,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* About: keyword copy for the home page, with links to the voucher and podcast pages */}
+      {/* About: keyword copy for the home page, with a link to the voucher page */}
       <section id="about" className="py-12 md:py-16">
         <div className="container mx-auto px-6 max-w-3xl">
           <h2 className="text-2xl md:text-4xl font-bold text-center mb-6">{copy.home.aboutH2}</h2>
@@ -249,7 +249,7 @@ const Index = () => {
             <p key={i} className="text-base md:text-lg text-muted-foreground mb-4">{paragraph}</p>
           ))}
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 mt-6">
-            {(['voucher', 'podcast'] as const).map((slug) => (
+            {(['voucher'] as const).map((slug) => (
               <Link
                 key={slug}
                 to={pagePath(language, slug)}

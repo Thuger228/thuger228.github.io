@@ -4,7 +4,7 @@ const copy: SiteCopy = {
   home: {
     title: 'Recording Studio Warsaw — Sanctum Sound | Praga',
     desc: 'Recording studio in Warsaw (Praga-Południe): record a song from 120 PLN/h, mixing & mastering from 400 PLN, rehearsal studio from 50 PLN/h. Rap, vocals, bands.',
-    aboutH2: 'A music studio in Warsaw for artists, bands and podcasters',
+    aboutH2: 'A music studio in Warsaw for singers, rappers and bands',
     about: [
       'Sanctum Sound is a professional recording studio in Warsaw for singers, rappers, bands and producers who want a finished track they’re proud of. A sound engineer runs every session, so you can focus on the performance while we take care of microphones, levels and takes.',
       'We record rap and hip-hop as well as pop, rock and everything in between: vocals, guitars, bass, drums, keys, strings and wind. Once the takes are in, we handle editing, mixing and mastering, or help you build the arrangement from a rough idea to a release-ready song. Recording starts at 120 PLN per hour; mixing and mastering at 400 PLN per song.',
@@ -277,12 +277,12 @@ const copy: SiteCopy = {
     title: 'Contact & Booking — Recording Studio in Warsaw',
     desc: 'Book a recording studio in Warsaw: Sanctum Sound, Aleja Stanów Zjednoczonych 67, Praga-Południe. Call +48 881 238 684, use the form or message us on Instagram.',
     h1: 'Contact and booking — recording studio in Warsaw',
-    intro: 'Want to book a session at our recording studio in Warsaw, reserve the rehearsal room or ask about equipment rental? Get in touch whichever way suits you and we’ll reply with available dates. Sanctum Sound brings recording, mixing and mastering, a rehearsal room, a podcast studio and equipment hire together at one address in Praga-Południe, so one message is enough to sort out everything you need.',
+    intro: 'Want to book a session at our recording studio in Warsaw, reserve the rehearsal room or ask about equipment rental? Get in touch whichever way suits you and we’ll reply with available dates. Sanctum Sound brings recording, mixing and mastering, a rehearsal room and equipment hire together at one address in Praga-Południe, so one message is enough to sort out everything you need.',
     sections: [
       {
         h2: 'How to book',
         body: [
-          'Fill in the contact form on this page, call us on +48 881 238 684, message @sanctum_sound_studio on Instagram or email support@sanctum-sa.com. Let us know what you’d like to do — recording, mixing, a rehearsal, a podcast or rental — and which dates work for you.',
+          'Fill in the contact form on this page, call us on +48 881 238 684, message @sanctum_sound_studio on Instagram or email support@sanctum-sa.com. Let us know what you’d like to do — recording, mixing, a rehearsal or rental — and which dates work for you.',
         ],
         list: [
           'Sanctum Sound, Aleja Stanów Zjednoczonych 67, 03-770 Warszawa (Praga-Południe)',
@@ -363,61 +363,8 @@ const copy: SiteCopy = {
     ],
   },
 
-  podcast: {
-    title: 'Podcast Studio Warsaw — Hourly Hire | Sanctum Sound',
-    desc: 'Podcast studio in Warsaw (Praga-Południe) for interviews, conversations and voice-overs: Shure and Sennheiser mics, a sound engineer and hourly rental.',
-    h1: 'Podcast studio in Warsaw',
-    intro: 'Sanctum Sound is a podcast studio in Warsaw where you can record interviews, conversations and solo episodes in an acoustically prepared room, with professional microphones and a sound engineer looking after the sound. You book by the hour, so you only pay for the time you need.',
-    sections: [
-      {
-        h2: 'Podcast recording in Warsaw with a sound engineer',
-        body: [
-          'Podcast recording in Warsaw shouldn’t mean fiddling with settings when you should be talking. A sound engineer sets up the microphones, checks levels and monitors the recording, so you and your guests can concentrate on the conversation.',
-        ],
-      },
-      {
-        h2: 'Microphones and sound',
-        body: [
-          'We record with microphones from Shure, Sennheiser, AKG and Audix and pick the right one for each voice. The result is clear, natural speech that’s easy to listen to on headphones or a phone speaker. The studio is also suited to voice-overs and spoken adverts.',
-        ],
-      },
-      {
-        h2: 'Editing and post-production',
-        body: [
-          'After the session we can edit the recording, tidy up the audio and mix the episode, so you get a finished file ready to publish. If you prefer to edit yourself, you can take the raw digital files home.',
-        ],
-      },
-      {
-        h2: 'Podcast studio rental: price and booking',
-        body: [
-          'Hourly podcast studio rental is priced on request. Tell us how long your episode runs and whether you need editing, and we’ll send you a quote. To record a podcast in Warsaw with us, use the contact form on this site, call +48 881 238 684 or message @sanctum_sound_studio on Instagram.',
-          'You’ll find our podcast studio in Warsaw at Aleja Stanów Zjednoczonych 67, in the Praga-Południe district.',
-        ],
-      },
-    ],
-    faq: [
-      {
-        q: 'How much does it cost to hire the podcast studio?',
-        a: 'The hourly rate is available on request. Get in touch with the details of your recording and we’ll send you a price.',
-      },
-      {
-        q: 'Do I need to bring my own equipment?',
-        a: 'No. Microphones, cables and recording gear are provided, and a sound engineer handles the technical side.',
-      },
-      {
-        q: 'Can you edit the podcast episode for me?',
-        a: 'Yes. We can edit and mix the recording so you receive an episode ready to publish.',
-      },
-      {
-        q: 'How do I book a podcast session?',
-        a: 'Use the contact form on this site, call +48 881 238 684 or message us on Instagram @sanctum_sound_studio.',
-      },
-    ],
-  },
-
   ui: {
     nav_voucher: 'Gift voucher',
-    nav_podcast: 'Podcast',
     directions_link: 'Plan your route on Google Maps',
     faq_page_title: 'Questions and answers',
   },

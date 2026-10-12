@@ -36,10 +36,8 @@ export interface SiteCopy {
   price: PageCopy;
   contact: PageCopy;
   voucher: PageCopy;
-  podcast: PageCopy;
   ui: {
     nav_voucher: string; // menu label for /voucher/
-    nav_podcast: string; // menu label for /podcast/
     directions_link: string; // "Plan your route on Google Maps"-style link text
     faq_page_title: string; // heading above a page's FAQ, e.g. "Pytania i odpowiedzi"
   };

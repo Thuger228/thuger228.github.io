@@ -9,24 +9,16 @@ const Header = () => {
   const copy = useCopy();
   const location = useLocation();
   const homePath = pagePath(language);
-  const isHome = location.pathname === homePath;
 
+  // Every menu item is a real page, so it works the same from the home page and from sub-pages.
   const navItems = [
-    { hash: '#recording', label: t('nav_recording') },
-    { hash: '#rehearsals', label: t('nav_rehearsals') },
-    { hash: '#rent', label: t('nav_rent') },
-    { hash: '#price', label: t('nav_price') },
-    { hash: '#contact', label: t('nav_contact') },
-  ];
-
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
-    if (!isHome) return; // follow the link to the home page section
-    e.preventDefault();
-    const element = document.querySelector(hash);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+    { slug: 'recording', label: t('nav_recording') },
+    { slug: 'rehearsals', label: t('nav_rehearsals') },
+    { slug: 'rent', label: t('nav_rent') },
+    { slug: 'price', label: t('nav_price') },
+    { slug: 'voucher', label: copy.ui.nav_voucher },
+    { slug: 'contact', label: t('nav_contact') },
+  ] as const;
 
   const currentSlug = slugFromPath(location.pathname);
 
@@ -41,22 +33,16 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-3 lg:gap-8 flex-1 justify-center px-3">
             {navItems.map((item) => (
-              <a
-                key={item.hash}
-                href={`${homePath}${item.hash}`}
-                onClick={(e) => handleNavClick(e, item.hash)}
-                className="text-xs lg:text-sm whitespace-nowrap font-medium transition-colors hover:text-primary text-muted-foreground"
+              <Link
+                key={item.slug}
+                to={pagePath(language, item.slug)}
+                aria-current={currentSlug === item.slug ? 'page' : undefined}
+                onClick={() => currentSlug === item.slug && window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className={`text-xs lg:text-sm whitespace-nowrap font-medium transition-colors hover:text-primary ${
+                  currentSlug === item.slug ? 'text-primary' : 'text-muted-foreground'
+                }`}
               >
                 {item.label}
-              </a>
-            ))}
-            {(['voucher', 'podcast'] as const).map((slug) => (
-              <Link
-                key={slug}
-                to={pagePath(language, slug)}
-                className="text-xs lg:text-sm whitespace-nowrap font-medium transition-colors hover:text-primary text-muted-foreground"
-              >
-                {copy.ui[`nav_${slug}`]}
               </Link>
             ))}
           </nav>

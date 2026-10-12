@@ -11,7 +11,6 @@
 - [Cennik](https://sanctum-sa.com/price/): Nagrywanie od 120 zł/godz., sala prób od 50 zł/godz., miks i mastering od 400 zł/utwór.
 - [Kontakt](https://sanctum-sa.com/contact/): Adres, telefon, formularz i mapa.
 - [Voucher](https://sanctum-sa.com/voucher/): Voucher na nagranie piosenki w studio jako prezent.
-- [Podcast](https://sanctum-sa.com/podcast/): Studio do nagrywania podcastów, wynajem na godziny.
 
 ## Other languages
 

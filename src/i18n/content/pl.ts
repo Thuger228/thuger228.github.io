@@ -8,7 +8,7 @@ const copy: SiteCopy = {
     about: [
       'Sanctum Sound to studio nagrań w Warszawie przy Alei Stanów Zjednoczonych 67. Nagrywamy wokal, instrumenty i całe zespoły, robimy miks, mastering i produkcję, a obok reżyserki działa sala prób z pełnym backline’em.',
       'Nagrywamy rap i hip-hop: od pojedynczej zwrotki po cały album, z edycją i strojeniem wokalu w cenie miksu. Jeśli szukasz studia nagrań na Pradze-Południe, w którym realizator jest obecny na każdej sesji, a ceny są jasne od początku, zapraszamy.',
-      'Jako studio muzyczne w Warszawie pracujemy z wokalistami, raperami, zespołami i podcasterami. Nagranie możesz też podarować bliskiej osobie w formie vouchera.',
+      'Jako studio muzyczne w Warszawie pracujemy z wokalistami, raperami, zespołami i producentami. Nagranie możesz też podarować bliskiej osobie w formie vouchera.',
     ],
   },
 
@@ -267,7 +267,7 @@ const copy: SiteCopy = {
       {
         h2: 'Co napisać przy rezerwacji',
         body: [
-          'Napisz, czego potrzebujesz (nagranie, miks, sala prób, wynajem sprzętu, voucher lub podcast), ile osób przyjdzie i jakie terminy Ci pasują. Jeśli nagrywasz do bitu, dołącz go albo link do demo.',
+          'Napisz, czego potrzebujesz (nagranie, miks, sala prób, wynajem sprzętu lub voucher), ile osób przyjdzie i jakie terminy Ci pasują. Jeśli nagrywasz do bitu, dołącz go albo link do demo.',
         ],
       },
     ],
@@ -330,68 +330,8 @@ const copy: SiteCopy = {
     ],
   },
 
-  podcast: {
-    title: 'Studio podcastowe Warszawa — wynajem na godziny | Sanctum',
-    desc: 'Studio do nagrywania podcastów w Warszawie na Pradze-Południe: mikrofony Shure i Sennheiser, realizator, wynajem na godziny. Nagrywanie rozmów i wywiadów.',
-    h1: 'Studio do nagrywania podcastów w Warszawie',
-    intro:
-      'Szukasz miejsca, w którym podcast zabrzmi profesjonalnie? Nasze studio podcastowe w Warszawie na Pradze-Południe ma wyciszone wnętrze, mikrofony Shure i Sennheiser oraz realizatora, który zadba o dźwięk, zanim zaczniecie rozmowę.',
-    sections: [
-      {
-        h2: 'Studio podcast Warszawa — wynajem na godziny',
-        body: [
-          'Wynajem studia podcastowego w Warszawie rozliczamy za godzinę. Nagrywamy rozmowy, wywiady, audiobooki i lektorskie nagrania do reklam. Cenę godziny ustalamy indywidualnie, zależnie od długości sesji i zakresu montażu.',
-        ],
-      },
-      {
-        h2: 'Studio nagraniowe do podcastu',
-        body: [
-          'To pełne studio nagraniowe, więc podcast nagrywasz w tych samych warunkach co muzykę: w wyciszonym pomieszczeniu, na mikrofonach Shure, Sennheiser, AKG i Audix, z realizatorem pilnującym poziomów każdego głosu.',
-        ],
-      },
-      {
-        h2: 'Nagranie podcastu — od sesji do gotowego odcinka',
-        body: [
-          'Nagranie podcastu w Warszawie może się skończyć na surowych śladach, ale możemy też zmontować odcinek: wyczyścić szumy, wyrównać głośność, dodać intro i outro oraz przygotować plik do publikacji na Spotify czy w Apple Podcasts.',
-        ],
-      },
-      {
-        h2: 'Jak przygotować się do nagrania podcastu',
-        body: [
-          'Przed sesją warto mieć plan odcinka, listę tematów i przybliżony czas rozmowy. Dobrze też wcześniej uzgodnić, kto prowadzi rozmowę, a kto jest gościem. Jeśli nagrywasz serię odcinków, możemy zapisać ustawienia mikrofonów, żeby każdy odcinek brzmiał tak samo.',
-          'Po nagraniu dostajesz pliki WAV z osobnymi śladami każdego głosu albo gotowy, zmontowany odcinek w MP3, zależnie od tego, co ustalimy przed sesją.',
-        ],
-      },
-      {
-        h2: 'Studio muzyczne w Warszawie do wynajęcia',
-        body: [
-          'Studio muzyczne w Warszawie na wynajem przyda się nie tylko podcasterom. Wynajmiesz je też na nagranie lektora, kursu online czy audiodeskrypcji. Napisz, co chcesz nagrać, a dobierzemy sprzęt i czas sesji.',
-        ],
-      },
-    ],
-    faq: [
-      {
-        q: 'Ile kosztuje wynajem studia podcastowego?',
-        a: 'Cenę godziny ustalamy indywidualnie, zależnie od długości sesji i montażu. Napisz lub zadzwoń pod +48 881 238 684.',
-      },
-      {
-        q: 'Czy realizator jest obecny podczas nagrania?',
-        a: 'Tak. Realizator ustawia mikrofony, pilnuje poziomów i nagrywa każdy głos na osobnym śladzie.',
-      },
-      {
-        q: 'Czy montujecie odcinki podcastu?',
-        a: 'Tak. Możemy wyczyścić nagranie, wyrównać głośność, dodać intro i outro oraz przygotować plik do publikacji.',
-      },
-      {
-        q: 'Gdzie jest studio podcastowe?',
-        a: 'Studio jest przy Alei Stanów Zjednoczonych 67 w Warszawie, na Pradze-Południe. Rezerwacja przez formularz, telefon +48 881 238 684 lub Instagram.',
-      },
-    ],
-  },
-
   ui: {
     nav_voucher: 'Voucher',
-    nav_podcast: 'Podcast',
     directions_link: 'Wyznacz trasę w Google Maps',
     faq_page_title: 'Pytania i odpowiedzi',
   },
