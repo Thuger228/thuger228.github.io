@@ -253,7 +253,7 @@ const ContactDetails = () => {
           title={c.map_title}
           width="100%"
           height="100%"
-          style={{ border: 0, filter: 'grayscale(1) invert(0.92) contrast(0.9)' }}
+          style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
