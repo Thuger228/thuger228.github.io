@@ -18,6 +18,7 @@
 
 const TZ = 'Europe/Warsaw';
 const MIN_NOTICE_MINUTES = 240; // a booking must start at least 4 hours from now (same as the site)
+const MAX_REHEARSAL_HOURS = 4; // longest rehearsal (same as maxQuantity in src/data/booking.ts)
 const CHECKOUT_MINUTES = 31; // the Stripe Checkout expires after this (Stripe's minimum is 30)
 const HOLD_MINUTES = 35; // an unpaid booking holds its slot this long while the customer pays
 const KEEP_UNPAID_HOURS = 25; // unpaid bookings stay in the calendar (as expired) this long, then are deleted
@@ -106,7 +107,8 @@ function book_(b) {
     !ISO_DATE.test(b.date) ||
     !/^[A-Za-z0-9_-]{6,200}$/.test(b.reference || '') ||
     !(start_minute >= 0 && start_minute < 1440) ||
-    !(duration >= 30 && duration <= 720)
+    !(duration >= 30 && duration <= 720) ||
+    (b.service === 'rehearsal' && duration > MAX_REHEARSAL_HOURS * 60)
   ) {
     return { error: 'invalid_booking' };
   }

@@ -22,7 +22,7 @@ export const BOOKING_SERVICES: BookingService[] = [
     pricePerUnit: 60, // set by the studio on 2026-10-12
     unit: 'hour',
     needsSlot: true,
-    maxQuantity: 12,
+    maxQuantity: 4, // longest rehearsal (set by the studio on 2026-10-12)
   },
   {
     id: 'recording',

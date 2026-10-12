@@ -239,6 +239,20 @@ const BookingForm = () => {
   useEffect(() => {
     if (done) scrollTop();
   }, [done]);
+  // On every step change, bring the new step into view: the form after "Your details" or a time pick,
+  // and the free times again after "Back".
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false;
+      return;
+    }
+    requestAnimationFrame(() => {
+      const target = step === 'pick' && day && timesRef.current ? timesRef.current : topRef.current;
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const daySlots = useMemo(
     () => (day && now ? slotsForDay(day, durationMin, taken, now) : []),
@@ -276,7 +290,6 @@ const BookingForm = () => {
     }
     setStart(slot.start);
     setStep('details');
-    scrollTop();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -528,7 +541,7 @@ const BookingForm = () => {
         {service.needsSlot && (
           <fieldset>
             <legend className="text-sm font-medium mb-2">{c.duration}</legend>
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:max-w-md">
               {Array.from({ length: service.maxQuantity }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
