@@ -101,6 +101,7 @@ function book_(b) {
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
+    if (tooMany_(b)) return { error: 'rate_limited' };
     const cal = calendar_();
     if (cal.getEvents(start, end).some((ev) => blocks_(ev, b.service))) return { error: 'slot_taken' };
 
@@ -121,10 +122,31 @@ function book_(b) {
     ev.setTag('sanctumStatus', pay ? 'pending' : 'request');
     ev.setTag('sanctumCreated', String(Date.now()));
     ev.setTag('sanctumLabel', label + ' — ' + name);
+    countBooking_(b);
     return { ok: true };
   } finally {
     lock.releaseLock();
   }
+}
+
+// The web app is public, so cap how many bookings can be made: someone spamming fake bookings
+// could otherwise fill the calendar. Limits: 20 per hour overall, 3 per day per email or phone.
+function limitKeys_(b) {
+  return [
+    ['all-' + Utilities.formatDate(new Date(), TZ, 'yyyyMMddHH'), 20, 3600],
+    ['email-' + clip_(b.email, 255).toLowerCase(), 3, 86400],
+    ['phone-' + clip_(b.phone, 50).replace(/\D/g, ''), 3, 86400],
+  ].map(([k, max, ttl]) => [Utilities.base64EncodeWebSafe(k).slice(0, 240), max, ttl]);
+}
+
+function tooMany_(b) {
+  const cache = CacheService.getScriptCache();
+  return limitKeys_(b).some(([k, max]) => Number(cache.get(k) || 0) >= max);
+}
+
+function countBooking_(b) {
+  const cache = CacheService.getScriptCache();
+  limitKeys_(b).forEach(([k, , ttl]) => cache.put(k, String(Number(cache.get(k) || 0) + 1), ttl));
 }
 
 // ---------------------------------------------------------------- Stripe

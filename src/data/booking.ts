@@ -49,7 +49,7 @@ export const BOOKING_SERVICES: BookingService[] = [
 // Booking backend: the Google Apps Script web app from google-apps-script/Code.gs, deployed in the
 // studio's Google account (https://script.google.com/macros/s/.../exec). It reads busy times from the
 // studio's Google Calendar and adds bookings to it. While empty, every time in opening hours shows as free.
-export const BOOKING_API_URL = '';
+export const BOOKING_API_URL = 'https://script.google.com/macros/s/AKfycbxVxfnd5xhrmA-5MP7jnTQqele-eMYbVnRdXZpFKxk9xd1uCKUF0fNZEIUoj-mYrU8PBQ/exec';
 
 // Booking details are emailed here (same inbox as the contact form) before the customer pays.
 export const BOOKING_EMAIL_ENDPOINT = 'https://formsubmit.co/ajax/support@sanctum-sa.com';
