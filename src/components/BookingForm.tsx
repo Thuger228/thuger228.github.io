@@ -130,8 +130,12 @@ const BookingForm = () => {
 
   const service = BOOKING_SERVICES.find((s) => s.id === serviceId)!;
   const total = service.pricePerUnit * quantity;
-  // Mixing and mastering has no date or song count: it's a request the studio answers by email or phone.
+  // Recording and mixing have no date or quantity: they're requests the studio answers by email or phone.
   const paymentLink = service.needsSlot ? service.paymentLink : '';
+  const requestCopy =
+    serviceId === 'recording'
+      ? { note: c.recording_note, label: c.describe_recording, hint: c.describe_recording_hint }
+      : { note: c.mixing_note, label: c.describe_songs, hint: c.describe_songs_hint };
   const durationMin = quantity * 60;
   const serviceName = (id: BookingServiceId) =>
     t(id === 'recording' ? 'price_recording_name' : id === 'rehearsal' ? 'price_rehearsal_name' : 'price_mixing_name');
@@ -357,8 +361,8 @@ const BookingForm = () => {
     return (
       <div ref={topRef} className="scroll-mt-28 bg-card border border-border rounded-lg p-8 md:p-10 text-center" role="status">
         <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-4" />
-        <h2 className="text-2xl md:text-3xl font-bold mb-3">{done === 'paid' ? c.paid_title : service.needsSlot ? c.request_sent_title : c.mix_sent_title}</h2>
-        <p className="text-muted-foreground mb-6">{done === 'paid' ? c.paid_text : service.needsSlot ? c.request_sent_text : c.mix_sent_text}</p>
+        <h2 className="text-2xl md:text-3xl font-bold mb-3">{done === 'paid' ? c.paid_title : service.needsSlot ? c.request_sent_title : c.ask_sent_title}</h2>
+        <p className="text-muted-foreground mb-6">{done === 'paid' ? c.paid_text : service.needsSlot ? c.request_sent_text : c.ask_sent_text}</p>
         <Button variant="outline" onClick={resetAll}>
           {c.new_booking}
         </Button>
@@ -401,7 +405,7 @@ const BookingForm = () => {
               <span className="text-2xl font-bold">{total} zł</span>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">{c.mixing_note}</p>
+            <p className="text-sm text-muted-foreground">{requestCopy.note}</p>
           )}
         </aside>
 
@@ -445,19 +449,19 @@ const BookingForm = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="booking-notes">{service.needsSlot ? c.notes : c.describe_songs}</Label>
+            <Label htmlFor="booking-notes">{service.needsSlot ? c.notes : requestCopy.label}</Label>
             <Textarea
               id="booking-notes"
               value={contact.notes}
               onChange={(e) => setContact({ ...contact, notes: e.target.value })}
-              placeholder={service.needsSlot ? undefined : c.describe_songs_hint}
+              placeholder={service.needsSlot ? undefined : requestCopy.hint}
               maxLength={2000}
               rows={service.needsSlot ? 3 : 6}
             />
           </div>
           <Button type="submit" disabled={loading} className="w-full" size="lg">
             {paymentLink ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-            {loading ? c.sending : paymentLink ? `${c.pay_button} · ${total} zł` : service.needsSlot ? c.request_button : c.mix_button}
+            {loading ? c.sending : paymentLink ? `${c.pay_button} · ${total} zł` : service.needsSlot ? c.request_button : c.ask_button}
           </Button>
           <p className="text-xs md:text-sm text-muted-foreground text-center">
             {paymentLink && quantity > 1 && <>{c.stripe_note.replace('{n}', String(quantity))} </>}
@@ -601,7 +605,7 @@ const BookingForm = () => {
         </div>
       ) : (
         <div className="border-t border-border pt-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
-          <p className="text-sm text-muted-foreground">{c.mixing_note}</p>
+          <p className="text-sm text-muted-foreground">{requestCopy.note}</p>
           <Button size="lg" onClick={() => setStep('details')}>
             {c.your_details}
           </Button>

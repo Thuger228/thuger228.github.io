@@ -24,9 +24,9 @@ export const BOOKING_SERVICES: BookingService[] = [
     id: 'recording',
     pricePerUnit: 120,
     unit: 'hour',
-    needsSlot: true,
+    needsSlot: false, // a request: the studio writes or calls back to agree the date (set by the studio on 2026-10-12)
     maxQuantity: 12,
-    paymentLink: '', // TODO: Stripe Payment Link "Nagrywanie — 1 godz." (120 PLN)
+    paymentLink: '', // not used: recording is a request (no date, no online payment)
   },
   {
     id: 'rehearsal',
