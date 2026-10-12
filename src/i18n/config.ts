@@ -25,7 +25,7 @@ export const OG_LOCALES: Record<Language, string> = {
 };
 
 // '' is the home page
-export const PAGES = ['', 'recording', 'rehearsals', 'rent', 'price', 'contact', 'voucher'] as const;
+export const PAGES = ['', 'recording', 'rehearsals', 'rent', 'price', 'contact', 'voucher', 'booking'] as const;
 export type PageSlug = (typeof PAGES)[number];
 
 export const langPrefix = (lang: Language) => (lang === DEFAULT_LANGUAGE ? '' : `/${lang}`);

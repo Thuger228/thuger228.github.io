@@ -15,6 +15,7 @@ const Footer = () => {
     { slug: 'price', label: t('nav_price') },
     { slug: 'voucher', label: copy.ui.nav_voucher },
     { slug: 'contact', label: t('nav_contact') },
+    { slug: 'booking', label: t('book_button') },
   ] as const;
 
   return (

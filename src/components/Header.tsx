@@ -45,6 +45,14 @@ const Header = () => {
                 {item.label}
               </Link>
             ))}
+            {/* Booking button: from lg up only, since at md the menu has no room for it in every language */}
+            <Link
+              to={pagePath(language, 'booking')}
+              aria-current={currentSlug === 'booking' ? 'page' : undefined}
+              className="hidden lg:inline-block text-sm whitespace-nowrap font-semibold rounded-md bg-primary text-primary-foreground px-3 py-2 transition-colors hover:bg-primary/90"
+            >
+              {t('book_button')}
+            </Link>
           </nav>
 
           {/* Language Switcher: real links so each language URL is crawlable */}

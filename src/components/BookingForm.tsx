@@ -1,0 +1,539 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { be, enGB, pl, ru, uk } from 'date-fns/locale';
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock, CreditCard, Send } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/hooks/use-toast';
+import { LANGUAGES, Language, pagePath } from '@/i18n/config';
+import { useBookingCopy } from '@/i18n/content/booking';
+import {
+  BOOKING_EMAIL_ENDPOINT,
+  BOOKING_SERVICES,
+  BOOK_AHEAD_DAYS,
+  BookingServiceId,
+  MIN_NOTICE_MINUTES,
+  OPENING_HOURS,
+  SLOT_STEP_MINUTES,
+  STRIPE_LOCALES,
+  STUDIO_TIME_ZONE,
+} from '@/data/booking';
+import { TakenSlot, fetchTakenSlots, holdSlot } from '@/lib/bookingApi';
+
+// Remembers the visitor's language across the Stripe round trip: every Payment Link returns to
+// the Polish /booking/?paid=1, and we send the visitor back to their own language from there.
+const RETURN_LANG_KEY = 'sanctum_booking_lang';
+
+const DATE_LOCALES = { pl, en: enGB, uk, be, ru };
+const INTL_LOCALES: Record<Language, string> = { pl: 'pl-PL', en: 'en-GB', uk: 'uk-UA', be: 'be-BY', ru: 'ru-RU' };
+
+const schema = z.object({
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(255),
+  phone: z.string().trim().min(5).max(50),
+  notes: z.string().trim().max(2000),
+});
+
+// ---- dates and times (all in studio time; dates as 'YYYY-MM-DD', times as minutes after midnight) ----
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const isoFromDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const dateFromIso = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+const addDays = (iso: string, days: number) => {
+  const d = dateFromIso(iso);
+  d.setDate(d.getDate() + days);
+  return isoFromDate(d);
+};
+const toMinutes = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
+const formatMinutes = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+
+const studioNow = () => {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: STUDIO_TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(new Date())
+      .map((p) => [p.type, p.value])
+  );
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+};
+
+interface Slot {
+  start: number;
+  taken: boolean;
+}
+
+// Every start time on a day that fits the session inside opening hours and after the notice period.
+const slotsForDay = (iso: string, durationMin: number, taken: TakenSlot[], now: { date: string; minutes: number }): Slot[] => {
+  const hours = OPENING_HOURS[dateFromIso(iso).getDay()];
+  if (!hours || iso < now.date) return [];
+  const [open, close] = hours.map(toMinutes);
+  const earliest = iso === now.date ? now.minutes + MIN_NOTICE_MINUTES : 0;
+  const busy = taken.filter((t) => t.booking_date === iso);
+  const slots: Slot[] = [];
+  for (let start = open; start + durationMin <= close; start += SLOT_STEP_MINUTES) {
+    if (start < earliest) continue;
+    const end = start + durationMin;
+    slots.push({ start, taken: busy.some((b) => b.start_minute < end && start < b.start_minute + b.duration_minutes) });
+  }
+  return slots;
+};
+
+// Stripe's client_reference_id allows letters, digits, "-" and "_" only (max 200 chars).
+const bookingReference = (service: BookingServiceId, date?: string, start?: number, quantity = 1) =>
+  [
+    'SS',
+    service,
+    date?.replace(/-/g, ''),
+    start === undefined ? undefined : formatMinutes(start).replace(':', ''),
+    `${quantity}x`,
+    Math.random().toString(36).slice(2, 6),
+  ]
+    .filter(Boolean)
+    .join('-');
+
+const BookingForm = () => {
+  const { language, t } = useLanguage();
+  const { form: c } = useBookingCopy();
+  const navigate = useNavigate();
+
+  const [serviceId, setServiceId] = useState<BookingServiceId>('recording');
+  const [quantity, setQuantity] = useState(1);
+  const [day, setDay] = useState<string>();
+  const [start, setStart] = useState<number>();
+  const [step, setStep] = useState<'pick' | 'details'>('pick');
+  const [contact, setContact] = useState({ name: '', email: '', phone: '', notes: '' });
+  const [now, setNow] = useState<{ date: string; minutes: number }>();
+  const [taken, setTaken] = useState<TakenSlot[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState<'paid' | 'requested' | null>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+
+  const service = BOOKING_SERVICES.find((s) => s.id === serviceId)!;
+  const total = service.pricePerUnit * quantity;
+  const durationMin = quantity * 60;
+  const serviceName = (id: BookingServiceId) =>
+    t(id === 'recording' ? 'price_recording_name' : id === 'rehearsal' ? 'price_rehearsal_name' : 'price_mixing_name');
+  const unitLabel = (id: BookingServiceId) =>
+    BOOKING_SERVICES.find((s) => s.id === id)!.unit === 'hour' ? t('unit_hour') : t('unit_song');
+
+  // Client-only bits (the page is pre-rendered at build time): the current date and the ?paid=1 return.
+  useEffect(() => {
+    setNow(studioNow());
+    if (new URLSearchParams(window.location.search).get('paid') !== '1') return;
+    let returnLang: string | null = null;
+    try {
+      returnLang = sessionStorage.getItem(RETURN_LANG_KEY);
+      sessionStorage.removeItem(RETURN_LANG_KEY);
+    } catch {
+      // storage blocked: stay on this language
+    }
+    if (returnLang && returnLang !== language && (LANGUAGES as readonly string[]).includes(returnLang)) {
+      navigate(`${pagePath(returnLang as Language, 'booking')}?paid=1`, { replace: true });
+      return;
+    }
+    setDone('paid');
+  }, [language, navigate]);
+
+  const loadTaken = useCallback(async () => {
+    if (!now || !service.needsSlot) return;
+    const slots = await fetchTakenSlots(serviceId, now.date, addDays(now.date, BOOK_AHEAD_DAYS));
+    setTaken(slots ?? []);
+  }, [now, serviceId, service.needsSlot]);
+
+  useEffect(() => {
+    setTaken([]);
+    loadTaken();
+  }, [loadTaken]);
+
+  // Keep the step that just changed in view (the details step and thank-you panel are shorter).
+  const scrollTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  useEffect(() => {
+    if (done) scrollTop();
+  }, [done]);
+
+  const daySlots = useMemo(
+    () => (day && now ? slotsForDay(day, durationMin, taken, now) : []),
+    [day, now, durationMin, taken]
+  );
+
+  const lastDay = now ? addDays(now.date, BOOK_AHEAD_DAYS) : undefined;
+  const isDayDisabled = (d: Date) => {
+    if (!now || !lastDay) return true;
+    const iso = isoFromDate(d);
+    if (iso < now.date || iso > lastDay) return true;
+    return !slotsForDay(iso, durationMin, taken, now).some((s) => !s.taken);
+  };
+
+  const formatDay = (iso: string) =>
+    new Intl.DateTimeFormat(INTL_LOCALES[language], { weekday: 'long', day: 'numeric', month: 'long' }).format(dateFromIso(iso));
+
+  const selectService = (id: BookingServiceId) => {
+    setServiceId(id);
+    const next = BOOKING_SERVICES.find((s) => s.id === id)!;
+    setQuantity((q) => Math.min(q, next.maxQuantity));
+    setStart(undefined);
+  };
+
+  const pickTime = (slot: Slot) => {
+    if (slot.taken) return;
+    setStart(slot.start);
+    setStep('details');
+    scrollTop();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = schema.safeParse(contact);
+    if (!parsed.success || (service.needsSlot && (!day || start === undefined))) {
+      toast({ title: c.error_invalid, variant: 'destructive' });
+      return;
+    }
+    const slotDay = service.needsSlot ? day : undefined;
+    const slotStart = service.needsSlot ? start : undefined;
+    const reference = bookingReference(serviceId, slotDay, slotStart, quantity);
+    setLoading(true);
+
+    // 1. Hold the slot so nobody else can book it while this customer pays.
+    if (slotDay && slotStart !== undefined) {
+      const hold = await holdSlot({
+        reference,
+        service: serviceId,
+        date: slotDay,
+        startMinute: slotStart,
+        durationMinutes: durationMin,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        notes: parsed.data.notes,
+        amount: total,
+      });
+      if (hold === 'slot_taken') {
+        toast({ title: c.slot_taken, variant: 'destructive' });
+        setLoading(false);
+        setStart(undefined);
+        setStep('pick');
+        loadTaken();
+        return;
+      }
+      // 'unavailable' (database not set up or unreachable): carry on, the studio confirms by hand.
+    }
+
+    // 2. Email the booking to the studio.
+    try {
+      const res = await fetch(BOOKING_EMAIL_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          reference,
+          service: serviceName(serviceId),
+          date: slotDay ?? '-',
+          start_time: slotStart === undefined ? '-' : `${formatMinutes(slotStart)}–${formatMinutes(slotStart + durationMin)}`,
+          quantity: `${quantity} × ${service.pricePerUnit} zł${unitLabel(serviceId)}`,
+          total: `${total} zł`,
+          name: parsed.data.name,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          notes: parsed.data.notes || '-',
+          language,
+          payment: service.paymentLink ? 'Stripe (check the Stripe Dashboard for this reference)' : 'To arrange with the customer',
+          _subject: `New booking ${reference}: ${serviceName(serviceId)} — Sanctum Sound`,
+          _replyto: parsed.data.email,
+          _template: 'table',
+          _captcha: 'false',
+        }),
+      });
+      if (!res.ok) throw new Error('Failed');
+    } catch {
+      toast({ title: c.error_send, variant: 'destructive' });
+      setLoading(false);
+      return;
+    }
+
+    if (!service.paymentLink) {
+      setDone('requested');
+      setLoading(false);
+      return;
+    }
+
+    // 3. Pay on Stripe. The reference ties the payment to the booking (the webhook marks it paid).
+    try {
+      sessionStorage.setItem(RETURN_LANG_KEY, language);
+    } catch {
+      // storage blocked: the visitor returns to the Polish page, which still shows the thank-you
+    }
+    const url = new URL(service.paymentLink);
+    url.searchParams.set('prefilled_email', parsed.data.email);
+    url.searchParams.set('client_reference_id', reference);
+    const locale = STRIPE_LOCALES[language];
+    if (locale) url.searchParams.set('locale', locale);
+    window.location.href = url.toString();
+  };
+
+  const resetAll = () => {
+    setDone(null);
+    setStep('pick');
+    setDay(undefined);
+    setStart(undefined);
+    if (window.location.search) navigate(pagePath(language, 'booking'), { replace: true });
+    loadTaken();
+  };
+
+  if (done) {
+    return (
+      <div ref={topRef} className="scroll-mt-28 bg-card border border-border rounded-lg p-8 md:p-10 text-center" role="status">
+        <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-4" />
+        <h2 className="text-2xl md:text-3xl font-bold mb-3">{done === 'paid' ? c.paid_title : c.request_sent_title}</h2>
+        <p className="text-muted-foreground mb-6">{done === 'paid' ? c.paid_text : c.request_sent_text}</p>
+        <Button variant="outline" onClick={resetAll}>
+          {c.new_booking}
+        </Button>
+      </div>
+    );
+  }
+
+  // ---- step 2: details and payment ----
+  if (step === 'details') {
+    return (
+      <div ref={topRef} className="scroll-mt-28 bg-card border border-border rounded-lg overflow-hidden md:grid md:grid-cols-[260px_1fr]">
+        <aside className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-border space-y-4">
+          <Button variant="ghost" size="sm" className="-ml-3" onClick={() => setStep('pick')}>
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            {c.back}
+          </Button>
+          <div>
+            <p className="text-sm text-muted-foreground">Sanctum Sound</p>
+            <p className="text-xl font-bold">{serviceName(serviceId)}</p>
+          </div>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            {service.needsSlot && day && start !== undefined ? (
+              <>
+                <li className="flex items-start gap-2">
+                  <CalendarDays className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span className="first-letter:uppercase">{formatDay(day)}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span>
+                    {formatMinutes(start)}–{formatMinutes(start + durationMin)} ({quantity} × {service.pricePerUnit} zł{unitLabel(serviceId)})
+                  </span>
+                </li>
+              </>
+            ) : (
+              <li>
+                {c.songs}: {quantity} × {service.pricePerUnit} zł{unitLabel(serviceId)}
+              </li>
+            )}
+          </ul>
+          <div className="pt-4 border-t border-border flex items-baseline justify-between">
+            <span className="text-muted-foreground text-sm">{c.total}</span>
+            <span className="text-2xl font-bold">{total} zł</span>
+          </div>
+          {!service.needsSlot && <p className="text-xs text-muted-foreground">{c.mixing_note}</p>}
+        </aside>
+
+        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4">
+          <h2 className="text-xl font-bold">{c.your_details}</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="booking-name">{c.name}</Label>
+              <Input
+                id="booking-name"
+                autoComplete="name"
+                value={contact.name}
+                onChange={(e) => setContact({ ...contact, name: e.target.value })}
+                maxLength={100}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="booking-phone">{c.phone}</Label>
+              <Input
+                id="booking-phone"
+                type="tel"
+                autoComplete="tel"
+                value={contact.phone}
+                onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+                maxLength={50}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="booking-email">{c.email}</Label>
+            <Input
+              id="booking-email"
+              type="email"
+              autoComplete="email"
+              value={contact.email}
+              onChange={(e) => setContact({ ...contact, email: e.target.value })}
+              maxLength={255}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="booking-notes">{c.notes}</Label>
+            <Textarea
+              id="booking-notes"
+              value={contact.notes}
+              onChange={(e) => setContact({ ...contact, notes: e.target.value })}
+              maxLength={2000}
+              rows={3}
+            />
+          </div>
+          <Button type="submit" disabled={loading} className="w-full" size="lg">
+            {service.paymentLink ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+            {loading ? c.sending : service.paymentLink ? `${c.pay_button} · ${total} zł` : c.request_button}
+          </Button>
+          <p className="text-xs md:text-sm text-muted-foreground text-center">
+            {service.paymentLink && quantity > 1 && <>{c.stripe_note.replace('{n}', String(quantity))} </>}
+            {service.needsSlot && c.confirm_note}
+          </p>
+        </form>
+      </div>
+    );
+  }
+
+  // ---- step 1: service, duration, day and time ----
+  return (
+    <div ref={topRef} className="scroll-mt-28 bg-card border border-border rounded-lg p-6 md:p-8 space-y-6">
+      <div className="grid gap-4 md:grid-cols-[1fr_180px] md:items-end">
+        <fieldset>
+          <legend className="text-sm font-medium mb-2">{c.service}</legend>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {BOOKING_SERVICES.map((s) => (
+              <label
+                key={s.id}
+                className={`cursor-pointer rounded-lg border p-4 transition-colors ${
+                  s.id === serviceId ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="service"
+                  value={s.id}
+                  checked={s.id === serviceId}
+                  onChange={() => selectService(s.id)}
+                  className="sr-only"
+                />
+                <span className="block font-semibold">{serviceName(s.id)}</span>
+                <span className="block text-sm text-muted-foreground">
+                  {s.pricePerUnit} zł{unitLabel(s.id)}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div className="space-y-2">
+          <Label htmlFor="booking-qty">{service.needsSlot ? c.duration : c.songs}</Label>
+          <select
+            id="booking-qty"
+            value={quantity}
+            onChange={(e) => {
+              setQuantity(Number(e.target.value));
+              setStart(undefined);
+            }}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
+          >
+            {Array.from({ length: service.maxQuantity }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {service.needsSlot ? `${n} h` : n}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {service.needsSlot ? (
+        <div className="border-t border-border pt-6 grid gap-6 md:grid-cols-[auto_1fr]">
+          <div>
+            <h2 className="text-lg font-bold mb-2">{c.pick_day}</h2>
+            {now ? (
+              <Calendar
+                mode="single"
+                locale={DATE_LOCALES[language]}
+                weekStartsOn={1}
+                selected={day ? dateFromIso(day) : undefined}
+                onSelect={(d) => {
+                  setDay(d ? isoFromDate(d) : undefined);
+                  setStart(undefined);
+                }}
+                fromDate={dateFromIso(now.date)}
+                toDate={lastDay ? dateFromIso(lastDay) : undefined}
+                disabled={isDayDisabled}
+                className="p-0"
+                classNames={{
+                  head_cell: 'text-muted-foreground rounded-md w-10 md:w-11 font-normal text-[0.8rem]',
+                  cell: 'h-10 w-10 md:h-11 md:w-11 text-center text-sm p-0 relative',
+                  day: 'h-10 w-10 md:h-11 md:w-11 p-0 rounded-full font-semibold text-primary hover:bg-primary/15 aria-selected:opacity-100',
+                  day_selected: 'bg-primary !text-primary-foreground hover:bg-primary',
+                  day_today: 'underline underline-offset-4',
+                  day_disabled: '!text-muted-foreground opacity-40 font-normal hover:bg-transparent',
+                  day_outside: 'invisible',
+                }}
+              />
+            ) : (
+              <div className="h-[320px] w-[300px] max-w-full rounded-md bg-muted/30 animate-pulse" />
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold mb-2">
+              {day ? <span className="first-letter:uppercase inline-block">{formatDay(day)}</span> : c.free_times}
+            </h2>
+            {!day ? (
+              <p className="text-sm text-muted-foreground">{c.pick_day_hint}</p>
+            ) : daySlots.every((s) => s.taken) ? (
+              <p className="text-sm text-muted-foreground">{c.no_slots}</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[340px] overflow-y-auto pr-1">
+                {daySlots.map((slot) => (
+                  <button
+                    key={slot.start}
+                    type="button"
+                    disabled={slot.taken}
+                    onClick={() => pickTime(slot)}
+                    className={`h-11 rounded-md border text-sm font-semibold transition-colors ${
+                      slot.taken
+                        ? 'border-border text-muted-foreground line-through opacity-50 cursor-not-allowed'
+                        : 'border-primary/60 text-primary hover:bg-primary hover:text-primary-foreground'
+                    }`}
+                    aria-label={slot.taken ? `${formatMinutes(slot.start)} (${c.taken})` : formatMinutes(slot.start)}
+                  >
+                    {formatMinutes(slot.start)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="border-t border-border pt-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+          <p className="text-sm text-muted-foreground">{c.mixing_note}</p>
+          <Button size="lg" onClick={() => setStep('details')}>
+            {c.your_details}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BookingForm;

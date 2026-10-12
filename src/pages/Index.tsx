@@ -440,7 +440,7 @@ const Index = () => {
       </section>
 
       {/* Fixed Book Button */}
-      <a href="https://linktr.ee/sanctum_sound" target="_blank" rel="noopener noreferrer" className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
+      <Link to={pagePath(language, 'booking')} className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
         <div className="relative animate-fade-in">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-md rounded-lg -z-10 blur-sm"></div>
           <Button 
@@ -452,7 +452,7 @@ const Index = () => {
             <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
-      </a>
+      </Link>
 
       {/* Fixed Contact Button */}
       <a href="#contact" className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40">

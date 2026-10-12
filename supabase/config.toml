@@ -1,1 +1,5 @@
 project_id = "gusqfyubukmjigjfzghl"
+
+# Stripe calls this webhook without a Supabase login; it checks the Stripe signature instead.
+[functions.stripe-webhook]
+verify_jwt = false
