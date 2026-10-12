@@ -23,7 +23,7 @@ import {
   STRIPE_LOCALES,
   STUDIO_TIME_ZONE,
 } from '@/data/booking';
-import { TakenSlot, fetchTakenSlots, holdSlot } from '@/lib/bookingApi';
+import { TakenSlot, confirmPayment, fetchTakenSlots, holdSlot } from '@/lib/bookingApi';
 
 // Remembers the visitor's language across the Stripe round trip: every Payment Link returns to
 // the Polish /booking/?paid=1, and we send the visitor back to their own language from there.
@@ -137,7 +137,9 @@ const BookingForm = () => {
   // Client-only bits (the page is pre-rendered at build time): the current date and the ?paid=1 return.
   useEffect(() => {
     setNow(studioNow());
-    if (new URLSearchParams(window.location.search).get('paid') !== '1') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('paid') !== '1') return;
+    const sessionId = params.get('session_id');
     let returnLang: string | null = null;
     try {
       returnLang = sessionStorage.getItem(RETURN_LANG_KEY);
@@ -146,9 +148,10 @@ const BookingForm = () => {
       // storage blocked: stay on this language
     }
     if (returnLang && returnLang !== language && (LANGUAGES as readonly string[]).includes(returnLang)) {
-      navigate(`${pagePath(returnLang as Language, 'booking')}?paid=1`, { replace: true });
+      navigate(`${pagePath(returnLang as Language, 'booking')}${window.location.search}`, { replace: true });
       return;
     }
+    if (sessionId) confirmPayment(sessionId);
     setDone('paid');
   }, [language, navigate]);
 
@@ -224,6 +227,7 @@ const BookingForm = () => {
         phone: parsed.data.phone,
         notes: parsed.data.notes,
         amount: total,
+        pay: Boolean(service.paymentLink),
       });
       if (hold === 'slot_taken') {
         toast({ title: c.slot_taken, variant: 'destructive' });
@@ -233,7 +237,7 @@ const BookingForm = () => {
         loadTaken();
         return;
       }
-      // 'unavailable' (database not set up or unreachable): carry on, the studio confirms by hand.
+      // 'unavailable' (backend not set up or unreachable): carry on, the studio confirms by hand.
     }
 
     // 2. Email the booking to the studio.
@@ -273,7 +277,7 @@ const BookingForm = () => {
       return;
     }
 
-    // 3. Pay on Stripe. The reference ties the payment to the booking (the webhook marks it paid).
+    // 3. Pay on Stripe. The reference ties the payment to the booking (the backend marks it paid).
     try {
       sessionStorage.setItem(RETURN_LANG_KEY, language);
     } catch {

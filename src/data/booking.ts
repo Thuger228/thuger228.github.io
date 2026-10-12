@@ -3,7 +3,7 @@
 // GitHub Pages has no server, so payment goes through Stripe Payment Links created in the Stripe
 // Dashboard (no secret key ever touches this site). Each link sells ONE unit of the service
 // (1 hour, or 1 song for mixing) with "Let customers adjust quantity" turned on, and redirects
-// back to https://sanctum-sa.com/booking/?paid=1 after payment.
+// back to https://sanctum-sa.com/booking/?paid=1&session_id={CHECKOUT_SESSION_ID} after payment.
 //
 // Paste each link (https://buy.stripe.com/...) below. While a link is empty, the form still works:
 // it sends the booking request by email and the studio arranges payment directly.
@@ -45,6 +45,11 @@ export const BOOKING_SERVICES: BookingService[] = [
     paymentLink: '', // TODO: Stripe Payment Link "Miks i mastering — 1 utwór" (400 PLN)
   },
 ];
+
+// Booking backend: the Google Apps Script web app from google-apps-script/Code.gs, deployed in the
+// studio's Google account (https://script.google.com/macros/s/.../exec). It reads busy times from the
+// studio's Google Calendar and adds bookings to it. While empty, every time in opening hours shows as free.
+export const BOOKING_API_URL = '';
 
 // Booking details are emailed here (same inbox as the contact form) before the customer pays.
 export const BOOKING_EMAIL_ENDPOINT = 'https://formsubmit.co/ajax/support@sanctum-sa.com';
