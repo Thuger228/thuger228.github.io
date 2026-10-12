@@ -130,6 +130,8 @@ const BookingForm = () => {
 
   const service = BOOKING_SERVICES.find((s) => s.id === serviceId)!;
   const total = service.pricePerUnit * quantity;
+  // Mixing and mastering has no date or song count: it's a request the studio answers by email or phone.
+  const paymentLink = service.needsSlot ? service.paymentLink : '';
   const durationMin = quantity * 60;
   const serviceName = (id: BookingServiceId) =>
     t(id === 'recording' ? 'price_recording_name' : id === 'rehearsal' ? 'price_rehearsal_name' : 'price_mixing_name');
@@ -278,7 +280,7 @@ const BookingForm = () => {
         phone: parsed.data.phone,
         notes: parsed.data.notes,
         amount: total,
-        pay: Boolean(service.paymentLink),
+        pay: Boolean(paymentLink),
       });
       if (hold === 'slot_taken') {
         toast({ title: c.slot_taken, variant: 'destructive' });
@@ -301,14 +303,14 @@ const BookingForm = () => {
           service: serviceName(serviceId),
           date: slotDay ?? '-',
           start_time: slotStart === undefined ? '-' : `${formatMinutes(slotStart)}–${formatMinutes(slotStart + durationMin)}`,
-          quantity: `${quantity} × ${service.pricePerUnit} zł${unitLabel(serviceId)}`,
-          total: `${total} zł`,
+          quantity: service.needsSlot ? `${quantity} × ${service.pricePerUnit} zł${unitLabel(serviceId)}` : '-',
+          total: service.needsSlot ? `${total} zł` : `to agree (from ${service.pricePerUnit} zł${unitLabel(serviceId)})`,
           name: parsed.data.name,
           email: parsed.data.email,
           phone: parsed.data.phone,
           notes: parsed.data.notes || '-',
           language,
-          payment: service.paymentLink ? 'Stripe (check the Stripe Dashboard for this reference)' : 'To arrange with the customer',
+          payment: paymentLink ? 'Stripe (check the Stripe Dashboard for this reference)' : 'To arrange with the customer',
           _subject: `New booking ${reference}: ${serviceName(serviceId)} — Sanctum Sound`,
           _replyto: parsed.data.email,
           _template: 'table',
@@ -322,7 +324,7 @@ const BookingForm = () => {
       return;
     }
 
-    if (!service.paymentLink) {
+    if (!paymentLink) {
       setDone('requested');
       setLoading(false);
       return;
@@ -334,7 +336,7 @@ const BookingForm = () => {
     } catch {
       // storage blocked: the visitor returns to the Polish page, which still shows the thank-you
     }
-    const url = new URL(service.paymentLink);
+    const url = new URL(paymentLink);
     url.searchParams.set('prefilled_email', parsed.data.email);
     url.searchParams.set('client_reference_id', reference);
     const locale = STRIPE_LOCALES[language];
@@ -355,8 +357,8 @@ const BookingForm = () => {
     return (
       <div ref={topRef} className="scroll-mt-28 bg-card border border-border rounded-lg p-8 md:p-10 text-center" role="status">
         <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-4" />
-        <h2 className="text-2xl md:text-3xl font-bold mb-3">{done === 'paid' ? c.paid_title : c.request_sent_title}</h2>
-        <p className="text-muted-foreground mb-6">{done === 'paid' ? c.paid_text : c.request_sent_text}</p>
+        <h2 className="text-2xl md:text-3xl font-bold mb-3">{done === 'paid' ? c.paid_title : service.needsSlot ? c.request_sent_title : c.mix_sent_title}</h2>
+        <p className="text-muted-foreground mb-6">{done === 'paid' ? c.paid_text : service.needsSlot ? c.request_sent_text : c.mix_sent_text}</p>
         <Button variant="outline" onClick={resetAll}>
           {c.new_booking}
         </Button>
@@ -391,17 +393,16 @@ const BookingForm = () => {
                   </span>
                 </li>
               </>
-            ) : (
-              <li>
-                {c.songs}: {quantity} × {service.pricePerUnit} zł{unitLabel(serviceId)}
-              </li>
-            )}
+            ) : null}
           </ul>
-          <div className="pt-4 border-t border-border flex items-baseline justify-between">
-            <span className="text-muted-foreground text-sm">{c.total}</span>
-            <span className="text-2xl font-bold">{total} zł</span>
-          </div>
-          {!service.needsSlot && <p className="text-xs text-muted-foreground">{c.mixing_note}</p>}
+          {service.needsSlot ? (
+            <div className="pt-4 border-t border-border flex items-baseline justify-between">
+              <span className="text-muted-foreground text-sm">{c.total}</span>
+              <span className="text-2xl font-bold">{total} zł</span>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{c.mixing_note}</p>
+          )}
         </aside>
 
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4">
@@ -444,21 +445,22 @@ const BookingForm = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="booking-notes">{c.notes}</Label>
+            <Label htmlFor="booking-notes">{service.needsSlot ? c.notes : c.describe_songs}</Label>
             <Textarea
               id="booking-notes"
               value={contact.notes}
               onChange={(e) => setContact({ ...contact, notes: e.target.value })}
+              placeholder={service.needsSlot ? undefined : c.describe_songs_hint}
               maxLength={2000}
-              rows={3}
+              rows={service.needsSlot ? 3 : 6}
             />
           </div>
           <Button type="submit" disabled={loading} className="w-full" size="lg">
-            {service.paymentLink ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-            {loading ? c.sending : service.paymentLink ? `${c.pay_button} · ${total} zł` : c.request_button}
+            {paymentLink ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+            {loading ? c.sending : paymentLink ? `${c.pay_button} · ${total} zł` : service.needsSlot ? c.request_button : c.mix_button}
           </Button>
           <p className="text-xs md:text-sm text-muted-foreground text-center">
-            {service.paymentLink && quantity > 1 && <>{c.stripe_note.replace('{n}', String(quantity))} </>}
+            {paymentLink && quantity > 1 && <>{c.stripe_note.replace('{n}', String(quantity))} </>}
             {service.needsSlot && c.confirm_note}
           </p>
         </form>
@@ -496,24 +498,26 @@ const BookingForm = () => {
             ))}
           </div>
         </fieldset>
-        <div className="space-y-2">
-          <Label htmlFor="booking-qty">{service.needsSlot ? c.duration : c.songs}</Label>
-          <select
-            id="booking-qty"
-            value={quantity}
-            onChange={(e) => {
-              setQuantity(Number(e.target.value));
-              setStart(undefined);
-            }}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
-          >
-            {Array.from({ length: service.maxQuantity }, (_, i) => i + 1).map((n) => (
-              <option key={n} value={n}>
-                {service.needsSlot ? `${n} h` : n}
-              </option>
-            ))}
-          </select>
-        </div>
+        {service.needsSlot && (
+          <div className="space-y-2">
+            <Label htmlFor="booking-qty">{c.duration}</Label>
+            <select
+              id="booking-qty"
+              value={quantity}
+              onChange={(e) => {
+                setQuantity(Number(e.target.value));
+                setStart(undefined);
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
+            >
+              {Array.from({ length: service.maxQuantity }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {n} h
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {service.needsSlot ? (

@@ -42,7 +42,7 @@ export const BOOKING_SERVICES: BookingService[] = [
     unit: 'song',
     needsSlot: false,
     maxQuantity: 20,
-    paymentLink: '', // TODO: Stripe Payment Link "Miks i mastering — 1 utwór" (400 PLN)
+    paymentLink: '', // not used: mixing and mastering is a request (no date, no online payment); the studio replies
   },
 ];
 
