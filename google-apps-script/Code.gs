@@ -23,8 +23,9 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ---------------------------------------------------------------- web app entry points
 
+// (Running doGet/doPost from the editor has no request, so they just report that the script is alive.)
 function doGet(e) {
-  const p = e.parameter || {};
+  const p = (e && e.parameter) || {};
   if (p.action === 'busy') return json_(busy_(p.service, p.from, p.to));
   return json_({ ok: true, service: 'sanctum-booking' });
 }
@@ -33,7 +34,7 @@ function doGet(e) {
 function doPost(e) {
   let body;
   try {
-    body = JSON.parse(e.postData.contents);
+    body = JSON.parse(e && e.postData ? e.postData.contents : '');
   } catch (err) {
     return json_({ error: 'bad_request' });
   }
