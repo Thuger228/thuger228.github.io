@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { be, enGB, pl, ru, uk } from 'date-fns/locale';
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock, CreditCard, Loader2, Send } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Check, CheckCircle2, Clock, CreditCard, Loader2, Send } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -130,6 +130,7 @@ const BookingForm = () => {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<'paid' | 'requested' | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
+  const timesRef = useRef<HTMLDivElement>(null);
 
   const service = BOOKING_SERVICES.find((s) => s.id === serviceId)!;
   // Rehearsal extras change the hourly price. Recording and mixing have no date or quantity: they're
@@ -504,27 +505,23 @@ const BookingForm = () => {
       <div className="space-y-5">
         <fieldset>
           <legend className="text-sm font-medium mb-2">{c.service}</legend>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3" role="radiogroup">
             {BOOKING_SERVICES.map((s) => (
-              <label
+              <button
                 key={s.id}
-                className={`cursor-pointer rounded-lg border p-4 transition-colors ${
+                type="button"
+                role="radio"
+                aria-checked={s.id === serviceId}
+                onClick={() => selectService(s.id)}
+                className={`text-left rounded-lg border p-4 transition-colors touch-manipulation ${
                   s.id === serviceId ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
                 }`}
               >
-                <input
-                  type="radio"
-                  name="service"
-                  value={s.id}
-                  checked={s.id === serviceId}
-                  onChange={() => selectService(s.id)}
-                  className="sr-only"
-                />
                 <span className="block font-semibold">{serviceName(s.id)}</span>
                 <span className="block text-sm text-muted-foreground">
                   {s.pricePerUnit} zł{unitLabel(s.id)}
                 </span>
-              </label>
+              </button>
             ))}
           </div>
         </fieldset>
@@ -557,29 +554,36 @@ const BookingForm = () => {
 
       {service.id === 'rehearsal' && (
         <fieldset>
-          <legend className="text-sm font-medium mb-2">
-            {c.extras}
-          </legend>
+          <legend className="text-sm font-medium mb-2">{c.extras}</legend>
           <div className="grid gap-3 sm:grid-cols-3">
-            {REHEARSAL_OPTIONS.map((o) => (
-              <label
-                key={o.id}
-                className={`flex items-start gap-3 cursor-pointer rounded-md border p-3 transition-colors ${
-                  options.includes(o.id) ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={options.includes(o.id)}
-                  onChange={() => toggleOption(o.id)}
-                  className="mt-1 h-4 w-4 accent-primary"
-                />
-                <span>
-                  <span className="block font-semibold text-sm">{optionName(o.id)}</span>
-                  <span className="block text-sm text-muted-foreground">{optionPrice(o)}</span>
-                </span>
-              </label>
-            ))}
+            {REHEARSAL_OPTIONS.map((o) => {
+              const on = options.includes(o.id);
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={on}
+                  onClick={() => toggleOption(o.id)}
+                  className={`flex items-start gap-3 text-left rounded-md border p-3 transition-colors touch-manipulation ${
+                    on ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
+                      on ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                  </span>
+                  <span>
+                    <span className="block font-semibold text-sm">{optionName(o.id)}</span>
+                    <span className="block text-sm text-muted-foreground">{optionPrice(o)}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </fieldset>
       )}
@@ -597,6 +601,9 @@ const BookingForm = () => {
                 onSelect={(d) => {
                   setDay(d ? isoFromDate(d) : undefined);
                   setStart(undefined);
+                  if (d && window.matchMedia('(max-width: 767px)').matches) {
+                    requestAnimationFrame(() => timesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+                  }
                 }}
                 fromDate={dateFromIso(now.date)}
                 toDate={lastDay ? dateFromIso(lastDay) : undefined}
@@ -617,7 +624,7 @@ const BookingForm = () => {
             )}
           </div>
 
-          <div className="min-w-0">
+          <div ref={timesRef} className="min-w-0 scroll-mt-28">
             <h2 className="text-lg font-bold mb-2">
               {day ? <span className="first-letter:uppercase inline-block">{formatDay(day)}</span> : c.free_times}
             </h2>
@@ -629,7 +636,7 @@ const BookingForm = () => {
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   {c.checking}
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-hidden="true">
+                <div className="grid grid-cols-3 gap-2" aria-hidden="true">
                   {daySlots.slice(0, 9).map((slot) => (
                     <div key={slot.start} className="h-11 rounded-md bg-muted/40 animate-pulse" />
                   ))}
@@ -638,7 +645,7 @@ const BookingForm = () => {
             ) : daySlots.every((s) => s.taken) ? (
               <p className="text-sm text-muted-foreground">{c.no_slots}</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[340px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-3 gap-2 md:max-h-[340px] md:overflow-y-auto md:pr-1">
                 {daySlots.map((slot) => (
                   <button
                     key={slot.start}
