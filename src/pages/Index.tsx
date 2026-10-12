@@ -256,13 +256,15 @@ const Index = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in">
-            <Button asChild size="lg" className="w-full max-w-xs sm:w-auto h-12 px-8 rounded-full text-base font-semibold">
-              <Link to={pagePath(language, 'booking')} className="relative">
+            <Button asChild size="lg" className="w-full max-w-xs sm:w-48 h-12 px-6 rounded-full text-base font-semibold">
+              <Link to={pagePath(language, 'booking')} className="gap-2">
+                {/* Empty space the same width as the arrow keeps the text centred. */}
+                <span className="w-4" aria-hidden="true" />
                 <span>{t('book_button')}</span>
-                <ArrowRight className="absolute right-6 w-4 h-4" aria-hidden="true" />
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full max-w-xs sm:w-auto h-12 px-8 rounded-full text-base font-semibold bg-background/40 backdrop-blur">
+            <Button asChild size="lg" variant="outline" className="w-full max-w-xs sm:w-48 h-12 px-6 rounded-full text-base font-semibold bg-background/40 backdrop-blur">
               <a href="#contact">{t('nav_contact')}</a>
             </Button>
           </div>
@@ -475,10 +477,11 @@ const Index = () => {
           <Link
             to={pagePath(language, 'booking')}
             tabIndex={!heroVisible && !contactReached ? undefined : -1}
-            className="group relative flex h-11 flex-1 items-center justify-center rounded-full bg-primary px-8 text-sm md:text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            className="group flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm md:text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
+            <span className="w-4" aria-hidden="true" />
             <span>{t('book_button')}</span>
-            <ArrowRight className="absolute right-4 w-4 h-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
           <a
             href="#contact"
