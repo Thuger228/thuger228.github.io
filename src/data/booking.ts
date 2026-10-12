@@ -63,8 +63,8 @@ export const STRIPE_LOCALES: Record<string, string | undefined> = {
 
 // ---------------------------------------------------------------------------------------------
 // Calendar schedule.
-// PLACEHOLDER: these opening hours are NOT confirmed by the studio yet. Edit them here and the
-// booking calendar follows. Times are Warsaw time. Recording and the rehearsal room are booked
+// Opening hours confirmed by the studio on 2026-10-12: every day 9:00–24:00. Edit them here and the
+// booking calendar follows. Times are Warsaw time; '24:00' means midnight. Recording and the rehearsal room are booked
 // separately, so a recording session doesn't block the rehearsal room and vice versa.
 // ---------------------------------------------------------------------------------------------
 
@@ -72,13 +72,13 @@ export const STUDIO_TIME_ZONE = 'Europe/Warsaw';
 
 // Opening hours per weekday (0 = Sunday … 6 = Saturday) as [open, close] in 'HH:MM', or null if closed.
 export const OPENING_HOURS: Record<number, [string, string] | null> = {
-  0: ['10:00', '22:00'],
-  1: ['10:00', '22:00'],
-  2: ['10:00', '22:00'],
-  3: ['10:00', '22:00'],
-  4: ['10:00', '22:00'],
-  5: ['10:00', '22:00'],
-  6: ['10:00', '22:00'],
+  0: ['09:00', '24:00'],
+  1: ['09:00', '24:00'],
+  2: ['09:00', '24:00'],
+  3: ['09:00', '24:00'],
+  4: ['09:00', '24:00'],
+  5: ['09:00', '24:00'],
+  6: ['09:00', '24:00'],
 };
 
 export const SLOT_STEP_MINUTES = 60; // how often a session can start (60 = on the hour)
