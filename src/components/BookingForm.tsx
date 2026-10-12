@@ -7,6 +7,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
+import PhoneInput, { isValidPhone } from '@/components/PhoneInput';
+import PaymentLoader from '@/components/PaymentLoader';
+import { useFormsCopy } from '@/i18n/content/forms';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
@@ -49,7 +52,7 @@ const INTL_LOCALES: Record<Language, string> = { pl: 'pl-PL', en: 'en-GB', uk: '
 const schema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(255),
-  phone: z.string().trim().min(5).max(50),
+  phone: z.string().trim().max(50).refine(isValidPhone),
   notes: z.string().trim().max(2000),
 });
 
@@ -140,6 +143,16 @@ const BookingForm = () => {
   const [now, setNow] = useState<{ date: string; minutes: number }>();
   const [busy, setBusy] = useState<Partial<Record<BookingServiceId, { loading: boolean; slots: TakenSlot[] }>>>({});
   const [loading, setLoading] = useState(false);
+  // Which step of "taking you to payment" is running (shown in the full-screen loader), and a guard
+  // so a double tap can't start two bookings.
+  const [payPhase, setPayPhase] = useState<0 | 1 | 2 | null>(null);
+  const submittingRef = useRef(false);
+  const stopLoading = () => {
+    submittingRef.current = false;
+    setPayPhase(null);
+    setLoading(false);
+  };
+  const f = useFormsCopy();
   const [done, setDone] = useState<'paid' | 'requested' | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const timesRef = useRef<HTMLDivElement>(null);
@@ -204,6 +217,8 @@ const BookingForm = () => {
   useEffect(() => {
     const onShow = (e: PageTransitionEvent) => {
       if (!e.persisted) return;
+      submittingRef.current = false;
+      setPayPhase(null);
       setLoading(false);
       const pending = takePending();
       if (pending) releaseHold(pending).finally(() => setNow(studioNow()));
@@ -329,15 +344,19 @@ const BookingForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     const parsed = schema.safeParse(contact);
     if (!parsed.success || (service.needsSlot && (!day || start === undefined))) {
-      toast({ title: c.error_invalid, variant: 'destructive' });
+      const phoneOnly = !parsed.success && parsed.error.issues.every((i) => i.path[0] === 'phone');
+      toast({ title: phoneOnly ? f.phone_invalid : c.error_invalid, variant: 'destructive' });
       return;
     }
+    submittingRef.current = true;
     const slotDay = service.needsSlot ? day : undefined;
     const slotStart = service.needsSlot ? start : undefined;
     const reference = bookingReference(serviceId, slotDay, slotStart, quantity);
     setLoading(true);
+    if (payOnline) setPayPhase(0);
 
     // 1. Hold the slot so nobody else can book it while this customer pays. The backend also creates
     //    the Stripe Checkout for the exact amount.
@@ -361,7 +380,7 @@ const BookingForm = () => {
       });
       if (hold.status === 'slot_taken') {
         toast({ title: c.slot_taken, variant: 'destructive' });
-        setLoading(false);
+        stopLoading();
         setStart(undefined);
         setStep('pick');
         loadTaken();
@@ -373,6 +392,7 @@ const BookingForm = () => {
     }
 
     // 2. Email the booking to the studio.
+    if (checkoutUrl) setPayPhase(1);
     try {
       const res = await fetch(BOOKING_EMAIL_ENDPOINT, {
         method: 'POST',
@@ -400,13 +420,13 @@ const BookingForm = () => {
       if (!res.ok) throw new Error('Failed');
     } catch {
       toast({ title: c.error_send, variant: 'destructive' });
-      setLoading(false);
+      stopLoading();
       return;
     }
 
     if (!checkoutUrl) {
       setDone('requested');
-      setLoading(false);
+      stopLoading();
       return;
     }
 
@@ -417,6 +437,8 @@ const BookingForm = () => {
     } catch {
       // storage blocked: the visitor returns to the Polish page, which still shows the thank-you
     }
+    // The loader stays up until the browser has left for Stripe.
+    setPayPhase(2);
     window.location.href = checkoutUrl;
   };
 
@@ -486,9 +508,10 @@ const BookingForm = () => {
           )}
         </aside>
 
-        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4">
+        {payPhase !== null && <PaymentLoader phase={payPhase} total={total} />}
+        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4" aria-busy={loading}>
           <h2 className="text-xl font-bold">{c.your_details}</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="booking-name">{c.name}</Label>
               <Input
@@ -502,13 +525,10 @@ const BookingForm = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="booking-phone">{c.phone}</Label>
-              <Input
+              <PhoneInput
                 id="booking-phone"
-                type="tel"
-                autoComplete="tel"
                 value={contact.phone}
-                onChange={(e) => setContact({ ...contact, phone: e.target.value })}
-                maxLength={50}
+                onChange={(phone) => setContact({ ...contact, phone })}
                 required
               />
             </div>
@@ -537,7 +557,13 @@ const BookingForm = () => {
             />
           </div>
           <Button type="submit" disabled={loading} className="w-full" size="lg">
-            {payOnline ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+            {loading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : payOnline ? (
+              <CreditCard className="w-4 h-4 mr-2" />
+            ) : (
+              <Send className="w-4 h-4 mr-2" />
+            )}
             {loading ? c.sending : payOnline ? `${c.pay_button} · ${total} zł` : c.ask_button}
           </Button>
           <p className="text-xs md:text-sm text-muted-foreground text-center">

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { contactCopy, useContactCopy, type ContactTopic } from '@/i18n/content/contact';
+import { useFormsCopy } from '@/i18n/content/forms';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PhoneInput, { isValidPhone } from '@/components/PhoneInput';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
@@ -15,7 +17,7 @@ const TOPICS: ContactTopic[] = ['rehearsal', 'recording', 'mixing', 'rent', 'vou
 const schema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(255),
-  phone: z.string().trim().min(1).max(50),
+  phone: z.string().trim().max(50).refine(isValidPhone),
   message: z.string().trim().min(1).max(2000),
 });
 
@@ -24,6 +26,7 @@ const EMPTY = { name: '', email: '', phone: '', message: '' };
 const ContactForm = () => {
   const { language, t } = useLanguage();
   const c = useContactCopy();
+  const f = useFormsCopy();
   const [form, setForm] = useState(EMPTY);
   const [topic, setTopic] = useState<ContactTopic | null>(null);
   const [honey, setHoney] = useState(''); // spam trap, real visitors never see it
@@ -34,7 +37,12 @@ const ContactForm = () => {
     e.preventDefault();
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
-      toast({ title: t('contact_error_title'), description: t('contact_error_desc'), variant: 'destructive' });
+      const phoneOnly = parsed.error.issues.every((i) => i.path[0] === 'phone');
+      toast({
+        title: phoneOnly ? f.phone_invalid : t('contact_error_title'),
+        description: phoneOnly ? undefined : t('contact_error_desc'),
+        variant: 'destructive',
+      });
       return;
     }
     setLoading(true);
@@ -106,7 +114,7 @@ const ContactForm = () => {
         </div>
       </fieldset>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="contact-name">{t('contact_name')}</Label>
           <Input
@@ -132,13 +140,10 @@ const ContactForm = () => {
         </div>
         <div className="space-y-2">
           <Label htmlFor="contact-phone">{t('contact_phone')}</Label>
-          <Input
+          <PhoneInput
             id="contact-phone"
-            type="tel"
-            autoComplete="tel"
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            maxLength={50}
+            onChange={(phone) => setForm({ ...form, phone })}
             required
           />
         </div>
