@@ -178,6 +178,34 @@ const BookingForm = () => {
   const checking = service.needsSlot && (busy[serviceId]?.loading ?? true);
   const taken = useMemo(() => busy[serviceId]?.slots ?? [], [busy, serviceId]);
 
+  // Double check with the calendar: busy times for the chosen day are fetched again whenever the day
+  // (or service) changes and again when a time is clicked, so a slot booked a minute ago never shows as free.
+  const recheckDay = useCallback(async (id: BookingServiceId, iso: string) => {
+    const fresh = await fetchTakenSlots(id, iso, iso);
+    if (!fresh) return null;
+    const forDay = fresh.filter((t) => t.booking_date === iso);
+    setBusy((b) => ({
+      ...b,
+      [id]: { loading: b[id]?.loading ?? false, slots: [...(b[id]?.slots ?? []).filter((t) => t.booking_date !== iso), ...forDay] },
+    }));
+    return forDay;
+  }, []);
+
+  const [dayChecked, setDayChecked] = useState<string>();
+  const [timeChecking, setTimeChecking] = useState<number>();
+  useEffect(() => {
+    if (!day || !service.needsSlot) return;
+    let live = true;
+    setDayChecked(undefined);
+    recheckDay(serviceId, day).finally(() => {
+      if (live) setDayChecked(`${serviceId}:${day}`);
+    });
+    return () => {
+      live = false;
+    };
+  }, [day, serviceId, service.needsSlot, recheckDay]);
+  const dayChecking = checking || (Boolean(day) && dayChecked !== `${serviceId}:${day}`);
+
   // Keep the step that just changed in view (the details step and thank-you panel are shorter).
   const scrollTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => {
@@ -208,8 +236,16 @@ const BookingForm = () => {
     setStart(undefined);
   };
 
-  const pickTime = (slot: Slot) => {
-    if (slot.taken || checking) return;
+  const pickTime = async (slot: Slot) => {
+    if (slot.taken || dayChecking || timeChecking !== undefined || !day) return;
+    setTimeChecking(slot.start);
+    const fresh = await recheckDay(serviceId, day);
+    setTimeChecking(undefined);
+    // null (calendar unreachable): carry on, booking checks the slot again on the server.
+    if (fresh?.some((b) => b.start_minute < slot.start + durationMin && slot.start < b.start_minute + b.duration_minutes)) {
+      toast({ title: c.slot_taken, variant: 'destructive' });
+      return;
+    }
     setStart(slot.start);
     setStep('details');
     scrollTop();
@@ -517,7 +553,7 @@ const BookingForm = () => {
             </h2>
             {!day ? (
               <p className="text-sm text-muted-foreground">{c.pick_day_hint}</p>
-            ) : checking ? (
+            ) : dayChecking ? (
               <div role="status" aria-live="polite">
                 <p className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -537,7 +573,7 @@ const BookingForm = () => {
                   <button
                     key={slot.start}
                     type="button"
-                    disabled={slot.taken}
+                    disabled={slot.taken || timeChecking !== undefined}
                     onClick={() => pickTime(slot)}
                     className={`h-11 rounded-md border text-sm font-semibold transition-colors ${
                       slot.taken
@@ -546,7 +582,11 @@ const BookingForm = () => {
                     }`}
                     aria-label={slot.taken ? `${formatMinutes(slot.start)} (${c.taken})` : formatMinutes(slot.start)}
                   >
-                    {formatMinutes(slot.start)}
+                    {timeChecking === slot.start ? (
+                      <Loader2 className="mx-auto h-4 w-4 animate-spin" aria-label={c.checking} />
+                    ) : (
+                      formatMinutes(slot.start)
+                    )}
                   </button>
                 ))}
               </div>
