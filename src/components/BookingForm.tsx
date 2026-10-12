@@ -19,14 +19,16 @@ import {
   BookingServiceId,
   MIN_NOTICE_MINUTES,
   OPENING_HOURS,
+  REHEARSAL_OPTIONS,
+  RehearsalOptionId,
   SLOT_STEP_MINUTES,
   STRIPE_LOCALES,
   STUDIO_TIME_ZONE,
 } from '@/data/booking';
-import { TakenSlot, confirmPayment, fetchTakenSlots, holdSlot } from '@/lib/bookingApi';
+import { TakenSlot, confirmPayment, fetchTakenSlots, holdSlot, releaseHold } from '@/lib/bookingApi';
 
-// Remembers the visitor's language across the Stripe round trip: every Payment Link returns to
-// the Polish /booking/?paid=1, and we send the visitor back to their own language from there.
+// Remembers the visitor's language across the Stripe round trip. The backend now returns each visitor
+// to their own language's page; this still covers a return to the Polish /booking/?paid=1.
 const RETURN_LANG_KEY = 'sanctum_booking_lang';
 
 const DATE_LOCALES = { pl, en: enGB, uk, be, ru };
@@ -118,6 +120,7 @@ const BookingForm = () => {
 
   const [serviceId, setServiceId] = useState<BookingServiceId>('recording');
   const [quantity, setQuantity] = useState(1);
+  const [options, setOptions] = useState<RehearsalOptionId[]>([]);
   const [day, setDay] = useState<string>();
   const [start, setStart] = useState<number>();
   const [step, setStep] = useState<'pick' | 'details'>('pick');
@@ -129,9 +132,16 @@ const BookingForm = () => {
   const topRef = useRef<HTMLDivElement>(null);
 
   const service = BOOKING_SERVICES.find((s) => s.id === serviceId)!;
-  const total = service.pricePerUnit * quantity;
-  // Recording and mixing have no date or quantity: they're requests the studio answers by email or phone.
-  const paymentLink = service.needsSlot ? service.paymentLink : '';
+  // Rehearsal extras change the hourly price. Recording and mixing have no date or quantity: they're
+  // requests the studio answers by email or phone. Only slot bookings are paid online.
+  const chosenOptions = service.id === 'rehearsal' ? REHEARSAL_OPTIONS.filter((o) => options.includes(o.id)) : [];
+  const perHour = service.pricePerUnit + chosenOptions.reduce((sum, o) => sum + o.pricePerHour, 0);
+  const total = perHour * quantity;
+  const payOnline = service.needsSlot;
+  const optionName = (id: RehearsalOptionId) => c[`opt_${id}`];
+  const optionPrice = (n: number) => `${n > 0 ? '+' : '−'}${Math.abs(n)} zł${t('unit_hour')}`;
+  const toggleOption = (id: RehearsalOptionId) =>
+    setOptions((cur) => (cur.includes(id) ? cur.filter((o) => o !== id) : [...cur, id]));
   const requestCopy =
     serviceId === 'recording'
       ? { note: c.recording_note, label: c.describe_recording, hint: c.describe_recording_hint }
@@ -146,6 +156,13 @@ const BookingForm = () => {
   useEffect(() => {
     setNow(studioNow());
     const params = new URLSearchParams(window.location.search);
+    const cancelled = params.get('cancel');
+    if (cancelled) {
+      // Back from Stripe without paying: free the held slot, then load busy times without it.
+      navigate(pagePath(language, 'booking'), { replace: true });
+      releaseHold(cancelled).finally(() => setNow(studioNow()));
+      return;
+    }
     if (params.get('paid') !== '1') return;
     const sessionId = params.get('session_id');
     let returnLang: string | null = null;
@@ -271,7 +288,9 @@ const BookingForm = () => {
     const reference = bookingReference(serviceId, slotDay, slotStart, quantity);
     setLoading(true);
 
-    // 1. Hold the slot so nobody else can book it while this customer pays.
+    // 1. Hold the slot so nobody else can book it while this customer pays. The backend also creates
+    //    the Stripe Checkout for the exact amount.
+    let checkoutUrl: string | undefined;
     if (slotDay && slotStart !== undefined) {
       const hold = await holdSlot({
         reference,
@@ -279,14 +298,17 @@ const BookingForm = () => {
         date: slotDay,
         startMinute: slotStart,
         durationMinutes: durationMin,
+        options: chosenOptions.map((o) => o.id),
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
         notes: parsed.data.notes,
         amount: total,
-        pay: Boolean(paymentLink),
+        checkout: payOnline,
+        locale: STRIPE_LOCALES[language],
+        returnPath: pagePath(language, 'booking'),
       });
-      if (hold === 'slot_taken') {
+      if (hold.status === 'slot_taken') {
         toast({ title: c.slot_taken, variant: 'destructive' });
         setLoading(false);
         setStart(undefined);
@@ -294,7 +316,9 @@ const BookingForm = () => {
         loadTaken();
         return;
       }
-      // 'unavailable' (backend not set up or unreachable): carry on, the studio confirms by hand.
+      // Only ever send the customer to Stripe's own checkout page.
+      if (hold.status === 'held' && hold.checkoutUrl?.startsWith('https://checkout.stripe.com/')) checkoutUrl = hold.checkoutUrl;
+      // 'unavailable', or no checkout (Stripe not set up): carry on, the studio confirms by hand.
     }
 
     // 2. Email the booking to the studio.
@@ -307,14 +331,15 @@ const BookingForm = () => {
           service: serviceName(serviceId),
           date: slotDay ?? '-',
           start_time: slotStart === undefined ? '-' : `${formatMinutes(slotStart)}–${formatMinutes(slotStart + durationMin)}`,
-          quantity: service.needsSlot ? `${quantity} × ${service.pricePerUnit} zł${unitLabel(serviceId)}` : '-',
+          quantity: service.needsSlot ? `${quantity} × ${perHour} zł${unitLabel(serviceId)}` : '-',
+          extras: chosenOptions.length ? chosenOptions.map((o) => `${optionName(o.id)} (${optionPrice(o.pricePerHour)})`).join(', ') : '-',
           total: service.needsSlot ? `${total} zł` : `to agree (from ${service.pricePerUnit} zł${unitLabel(serviceId)})`,
           name: parsed.data.name,
           email: parsed.data.email,
           phone: parsed.data.phone,
           notes: parsed.data.notes || '-',
           language,
-          payment: paymentLink ? 'Stripe (check the Stripe Dashboard for this reference)' : 'To arrange with the customer',
+          payment: checkoutUrl ? 'Stripe (check the Stripe Dashboard for this reference)' : 'To arrange with the customer',
           _subject: `New booking ${reference}: ${serviceName(serviceId)} — Sanctum Sound`,
           _replyto: parsed.data.email,
           _template: 'table',
@@ -328,7 +353,7 @@ const BookingForm = () => {
       return;
     }
 
-    if (!paymentLink) {
+    if (!checkoutUrl) {
       setDone('requested');
       setLoading(false);
       return;
@@ -340,12 +365,7 @@ const BookingForm = () => {
     } catch {
       // storage blocked: the visitor returns to the Polish page, which still shows the thank-you
     }
-    const url = new URL(paymentLink);
-    url.searchParams.set('prefilled_email', parsed.data.email);
-    url.searchParams.set('client_reference_id', reference);
-    const locale = STRIPE_LOCALES[language];
-    if (locale) url.searchParams.set('locale', locale);
-    window.location.href = url.toString();
+    window.location.href = checkoutUrl;
   };
 
   const resetAll = () => {
@@ -393,9 +413,14 @@ const BookingForm = () => {
                 <li className="flex items-start gap-2">
                   <Clock className="w-4 h-4 mt-0.5 shrink-0" />
                   <span>
-                    {formatMinutes(start)}–{formatMinutes(start + durationMin)} ({quantity} × {service.pricePerUnit} zł{unitLabel(serviceId)})
+                    {formatMinutes(start)}–{formatMinutes(start + durationMin)} ({quantity} × {perHour} zł{unitLabel(serviceId)})
                   </span>
                 </li>
+                {chosenOptions.map((o) => (
+                  <li key={o.id} className="pl-6">
+                    {optionName(o.id)} ({optionPrice(o.pricePerHour)})
+                  </li>
+                ))}
               </>
             ) : null}
           </ul>
@@ -460,11 +485,10 @@ const BookingForm = () => {
             />
           </div>
           <Button type="submit" disabled={loading} className="w-full" size="lg">
-            {paymentLink ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-            {loading ? c.sending : paymentLink ? `${c.pay_button} · ${total} zł` : service.needsSlot ? c.request_button : c.ask_button}
+            {payOnline ? <CreditCard className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+            {loading ? c.sending : payOnline ? `${c.pay_button} · ${total} zł` : c.ask_button}
           </Button>
           <p className="text-xs md:text-sm text-muted-foreground text-center">
-            {paymentLink && quantity > 1 && <>{c.stripe_note.replace('{n}', String(quantity))} </>}
             {service.needsSlot && c.confirm_note}
           </p>
         </form>
@@ -523,6 +547,35 @@ const BookingForm = () => {
           </div>
         )}
       </div>
+
+      {service.id === 'rehearsal' && (
+        <fieldset>
+          <legend className="text-sm font-medium mb-2">
+            {c.extras} <span className="text-muted-foreground font-normal">· {perHour} zł{t('unit_hour')}</span>
+          </legend>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {REHEARSAL_OPTIONS.map((o) => (
+              <label
+                key={o.id}
+                className={`flex items-start gap-3 cursor-pointer rounded-md border p-3 transition-colors ${
+                  options.includes(o.id) ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={options.includes(o.id)}
+                  onChange={() => toggleOption(o.id)}
+                  className="mt-1 h-4 w-4 accent-primary"
+                />
+                <span>
+                  <span className="block font-semibold text-sm">{optionName(o.id)}</span>
+                  <span className="block text-sm text-muted-foreground">{optionPrice(o.pricePerHour)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       {service.needsSlot ? (
         <div className="border-t border-border pt-6 grid gap-6 md:grid-cols-[auto_1fr]">

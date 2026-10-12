@@ -4,11 +4,12 @@
  * The studio's Google Calendar is the booking database:
  *   - the booking page reads busy times from it (event titles never leave this script),
  *   - every booking made on the site becomes a calendar event,
+ *   - rehearsal room bookings get a Stripe Checkout for the exact amount, created here,
  *   - Stripe payments are confirmed by asking Stripe directly, then the event is marked paid.
  * Anything you put in the calendar yourself (a session booked by phone, a day off) blocks those times.
  *
  * Script properties (Project Settings → Script properties):
- *   STRIPE_SECRET_KEY  a Stripe *restricted* key with "Checkout Sessions: Read" only (rk_live_...)
+ *   STRIPE_SECRET_KEY  a Stripe *restricted* key with "Checkout Sessions: Write" only (rk_live_...)
  *   CALENDAR_ID        optional; the calendar to use. Default: this account's main calendar.
  *
  * Setup: paste this file, set the properties, run setup() once, then Deploy → New deployment →
@@ -17,9 +18,21 @@
 
 const TZ = 'Europe/Warsaw';
 const MIN_NOTICE_MINUTES = 240; // a booking must start at least 4 hours from now (same as the site)
-const HOLD_MINUTES = 30; // an unpaid booking holds its slot this long while the customer pays
-const KEEP_UNPAID_HOURS = 25; // a Stripe Payment Link checkout can be paid up to 24 h after it starts
+const CHECKOUT_MINUTES = 31; // the Stripe Checkout expires after this (Stripe's minimum is 30)
+const HOLD_MINUTES = 35; // an unpaid booking holds its slot this long while the customer pays
+const KEEP_UNPAID_HOURS = 25; // unpaid bookings stay in the calendar (as expired) this long, then are deleted
 const SERVICE_LABELS = { recording: 'Nagrywanie', rehearsal: 'Sala prób' };
+const SITE = 'https://sanctum-sa.com';
+
+// Rehearsal room prices in PLN per hour, charged on Stripe. Keep in line with src/data/booking.ts.
+const REHEARSAL = {
+  perHour: 60,
+  options: {
+    cymbals: { price: 10, label: 'zestaw talerzy' },
+    double_pedal: { price: 5, label: 'podwójna stopa' },
+    solo: { price: -10, label: 'tylko perkusja lub wokal' },
+  },
+};
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ---------------------------------------------------------------- web app entry points
@@ -41,6 +54,7 @@ function doPost(e) {
   }
   if (body.action === 'book') return json_(book_(body));
   if (body.action === 'confirm') return json_(confirm_(body.session_id));
+  if (body.action === 'cancel') return json_(cancel_(body.reference));
   return json_({ error: 'unknown_action' });
 }
 
@@ -99,6 +113,16 @@ function book_(b) {
   const end = new Date(start.getTime() + duration * 60000);
   if (start.getTime() < Date.now() + MIN_NOTICE_MINUTES * 60000) return { error: 'too_soon' };
 
+  // The price is worked out here from REHEARSAL, never taken from the page.
+  const hours = duration / 60;
+  const options = Object.keys(REHEARSAL.options).filter((k) => (b.options || []).indexOf(k) >= 0);
+  const priced = b.service === 'rehearsal' && hours === Math.floor(hours);
+  const perHour = priced ? options.reduce((sum, k) => sum + REHEARSAL.options[k].price, REHEARSAL.perHour) : 0;
+  const amount = perHour * hours;
+  const checkout = Boolean(b.checkout) && priced && amount > 0;
+
+  const name = clip_(b.name, 100);
+  let ev;
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
@@ -106,28 +130,72 @@ function book_(b) {
     const cal = calendar_();
     if (cal.getEvents(start, end).some((ev) => blocks_(ev, b.service))) return { error: 'slot_taken' };
 
-    const name = clip_(b.name, 100);
-    const pay = Boolean(b.pay);
-    const ev = cal.createEvent((pay ? '⏳ Nieopłacone: ' : '📝 Do potwierdzenia: ') + label + ' — ' + name, start, end, {
+    ev = cal.createEvent((checkout ? '⏳ Nieopłacone: ' : '📝 Do potwierdzenia: ') + label + ' — ' + name, start, end, {
       description: [
         'Rezerwacja: ' + b.reference,
         'Imię: ' + name,
         'Telefon: ' + clip_(b.phone, 50),
         'E-mail: ' + clip_(b.email, 255),
-        'Kwota: ' + Number(b.amount || 0) + ' zł' + (pay ? ' (płatność Stripe)' : ' (płatność do ustalenia)'),
+        priced
+          ? 'Kwota: ' + amount + ' zł (' + hours + ' × ' + perHour + ' zł/h)' + (checkout ? ', płatność Stripe' : ', płatność do ustalenia')
+          : 'Kwota: do ustalenia',
+        'Dodatki: ' + (options.map((k) => REHEARSAL.options[k].label).join(', ') || '-'),
         'Uwagi: ' + (clip_(b.notes, 2000) || '-'),
       ].join('\n'),
     });
     ev.setTag('sanctumRef', b.reference);
     ev.setTag('sanctumService', b.service);
-    ev.setTag('sanctumStatus', pay ? 'pending' : 'request');
+    ev.setTag('sanctumStatus', checkout ? 'pending' : 'request');
     ev.setTag('sanctumCreated', String(Date.now()));
     ev.setTag('sanctumLabel', label + ' — ' + name);
     countBooking_(b);
-    return { ok: true };
   } finally {
     lock.releaseLock();
   }
+  if (!checkout) return { ok: true };
+
+  // Stripe Checkout for the exact amount. If Stripe isn't set up or refuses, the booking stays as a
+  // request the studio confirms by hand.
+  const page = /^\/(?:(?:en|uk|be|ru)\/)?booking\/$/.test(b.return_path || '') ? b.return_path : '/booking/';
+  const session = stripePost_('checkout/sessions', {
+    mode: 'payment',
+    client_reference_id: b.reference,
+    customer_email: clip_(b.email, 255),
+    locale: ['pl', 'en', 'ru'].indexOf(b.locale) >= 0 ? b.locale : 'auto',
+    expires_at: String(Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60),
+    success_url: SITE + page + '?paid=1&session_id={CHECKOUT_SESSION_ID}',
+    cancel_url: SITE + page + '?cancel=' + b.reference,
+    'line_items[0][quantity]': String(hours),
+    'line_items[0][price_data][currency]': 'pln',
+    'line_items[0][price_data][unit_amount]': String(perHour * 100),
+    'line_items[0][price_data][product_data][name]':
+      'Sala prób — 1 godz.' + (options.length ? ' (' + options.map((k) => REHEARSAL.options[k].label).join(', ') + ')' : ''),
+    'line_items[0][price_data][product_data][description]': b.date + ', ' + pad_(Math.floor(start_minute / 60)) + ':' + pad_(start_minute % 60),
+  });
+  if (!session || !session.url) {
+    ev.setTag('sanctumStatus', 'request');
+    ev.setTitle('📝 Do potwierdzenia: ' + label + ' — ' + name);
+    return { ok: true };
+  }
+  return { ok: true, checkout_url: session.url };
+}
+
+// The customer came back from Stripe without paying: free the slot straight away.
+function cancel_(reference) {
+  const m = /^SS-(recording|rehearsal)-(\d{4})(\d{2})(\d{2})-/.exec(reference || '');
+  if (!m) return { error: 'invalid_reference' };
+  const ev = findBooking_(reference, m[2] + '-' + m[3] + '-' + m[4]);
+  if (ev && ev.getTag('sanctumStatus') === 'pending') {
+    ev.setTag('sanctumStatus', 'expired');
+    ev.setTitle('⌛ Anulowana (nieopłacona): ' + (ev.getTag('sanctumLabel') || ''));
+  }
+  return { ok: true };
+}
+
+function findBooking_(reference, date) {
+  return calendar_()
+    .getEvents(at_(date, 0), new Date(at_(date, 0).getTime() + 36 * 3600 * 1000))
+    .find((e) => e.getTag('sanctumRef') === reference);
 }
 
 // The web app is public, so cap how many bookings can be made: someone spamming fake bookings
@@ -189,11 +257,8 @@ function syncStripe() {
 function markPaid_(reference, session) {
   const m = /^SS-(recording|rehearsal)-(\d{4})(\d{2})(\d{2})-/.exec(reference);
   if (!m) return; // mixing bookings have no calendar slot
-  const date = m[2] + '-' + m[3] + '-' + m[4];
   const cal = calendar_();
-  const ev = cal
-    .getEvents(at_(date, 0), new Date(at_(date, 0).getTime() + 36 * 3600 * 1000))
-    .find((e) => e.getTag('sanctumRef') === reference);
+  const ev = findBooking_(reference, m[2] + '-' + m[3] + '-' + m[4]);
   if (!ev || ev.getTag('sanctumStatus') === 'paid') return;
 
   // Paid after the hold ran out: someone else may have taken the slot meanwhile.
@@ -210,6 +275,22 @@ function markPaid_(reference, session) {
     ev.getDescription() +
       '\nStripe: ' + session.id + ', ' + (session.amount_total / 100) + ' ' + String(session.currency || '').toUpperCase()
   );
+}
+
+function stripePost_(path, params) {
+  const key = PropertiesService.getScriptProperties().getProperty('STRIPE_SECRET_KEY');
+  if (!key) return null;
+  const res = UrlFetchApp.fetch('https://api.stripe.com/v1/' + path, {
+    method: 'post',
+    headers: { Authorization: 'Bearer ' + key },
+    payload: params, // sent form-encoded
+    muteHttpExceptions: true,
+  });
+  if (res.getResponseCode() !== 200) {
+    console.error('Stripe ' + res.getResponseCode() + ': ' + res.getContentText());
+    return null;
+  }
+  return JSON.parse(res.getContentText());
 }
 
 function stripe_(path) {

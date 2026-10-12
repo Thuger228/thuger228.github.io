@@ -1,22 +1,19 @@
-// Online booking: which services can be booked, their base prices and their Stripe Payment Links.
+// Online booking: which services can be booked and their prices.
 //
-// GitHub Pages has no server, so payment goes through Stripe Payment Links created in the Stripe
-// Dashboard (no secret key ever touches this site). Each link sells ONE unit of the service
-// (1 hour, or 1 song for mixing) with "Let customers adjust quantity" turned on, and redirects
-// back to https://sanctum-sa.com/booking/?paid=1&session_id={CHECKOUT_SESSION_ID} after payment.
-//
-// Paste each link (https://buy.stripe.com/...) below. While a link is empty, the form still works:
-// it sends the booking request by email and the studio arranges payment directly.
+// Only the rehearsal room is booked in the calendar and paid online. GitHub Pages has no server, so
+// the Google Apps Script backend (google-apps-script/Code.gs) creates the Stripe Checkout for the
+// exact amount; no Stripe key ever touches this site. The backend has its own copy of the rehearsal
+// prices (REHEARSAL in Code.gs) and charges those, so change both together.
+// Recording and mixing are requests: the studio writes or calls back.
 
 export type BookingServiceId = 'recording' | 'rehearsal' | 'mixing';
 
 export interface BookingService {
   id: BookingServiceId;
-  pricePerUnit: number; // PLN, must match the price on the Stripe Payment Link
+  pricePerUnit: number; // PLN per hour or per song
   unit: 'hour' | 'song';
-  needsSlot: boolean; // pick a date and start time
-  maxQuantity: number; // keep in line with the maximum quantity set on the Payment Link
-  paymentLink: string;
+  needsSlot: boolean; // pick a date and start time, then pay online
+  maxQuantity: number;
 }
 
 export const BOOKING_SERVICES: BookingService[] = [
@@ -26,24 +23,30 @@ export const BOOKING_SERVICES: BookingService[] = [
     unit: 'hour',
     needsSlot: false, // a request: the studio writes or calls back to agree the date (set by the studio on 2026-10-12)
     maxQuantity: 12,
-    paymentLink: '', // not used: recording is a request (no date, no online payment)
   },
   {
     id: 'rehearsal',
-    pricePerUnit: 50,
+    pricePerUnit: 60, // set by the studio on 2026-10-12
     unit: 'hour',
     needsSlot: true,
     maxQuantity: 12,
-    paymentLink: '', // TODO: Stripe Payment Link "Sala prób — 1 godz." (50 PLN)
   },
   {
     id: 'mixing',
     pricePerUnit: 400,
     unit: 'song',
-    needsSlot: false,
+    needsSlot: false, // a request (no date, no online payment); the studio replies
     maxQuantity: 20,
-    paymentLink: '', // not used: mixing and mastering is a request (no date, no online payment); the studio replies
   },
+];
+
+// Rehearsal room extras, added to the hourly price (set by the studio on 2026-10-12).
+// Keep in line with REHEARSAL.options in Code.gs.
+export type RehearsalOptionId = 'cymbals' | 'double_pedal' | 'solo';
+export const REHEARSAL_OPTIONS: { id: RehearsalOptionId; pricePerHour: number }[] = [
+  { id: 'cymbals', pricePerHour: 10 },
+  { id: 'double_pedal', pricePerHour: 5 },
+  { id: 'solo', pricePerHour: -10 }, // drums only or vocals only
 ];
 
 // Booking backend: the Google Apps Script web app from google-apps-script/Code.gs, deployed in the

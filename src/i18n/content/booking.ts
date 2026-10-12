@@ -25,9 +25,12 @@ export interface BookingFormCopy {
   notes: string;
   total: string;
   pay_button: string;
+  extras: string; // rehearsal room extras
+  opt_cymbals: string;
+  opt_double_pedal: string;
+  opt_solo: string;
   request_button: string;
   sending: string;
-  stripe_note: string; // {n} is replaced with the quantity to set on the Stripe page
   confirm_note: string;
   mixing_note: string;
   error_invalid: string;
@@ -94,9 +97,12 @@ const bookingCopy: Record<Language, BookingCopy> = {
       notes: 'Uwagi (opcjonalnie)',
       total: 'Do zapłaty',
       pay_button: 'Przejdź do płatności',
+      extras: 'Dodatki',
+      opt_cymbals: 'Zestaw talerzy',
+      opt_double_pedal: 'Podwójna stopa',
+      opt_solo: 'Tylko perkusja lub tylko wokal',
       request_button: 'Wyślij rezerwację',
       sending: 'Wysyłanie…',
-      stripe_note: 'Płatność obsługuje Stripe. Na stronie płatności ustaw ilość na {n}.',
       confirm_note: 'Termin potwierdzimy telefonicznie lub mailowo po otrzymaniu rezerwacji.',
       mixing_note: 'Zostaw kontakt, a odpiszemy lub oddzwonimy, żeby omówić szczegóły. Śmiało opisz swoje utwory.',
       error_invalid: 'Uzupełnij wszystkie wymagane pola.',
@@ -158,9 +164,12 @@ const bookingCopy: Record<Language, BookingCopy> = {
       notes: 'Anything we should know? (optional)',
       total: 'Total',
       pay_button: 'Continue to payment',
+      extras: 'Extras',
+      opt_cymbals: 'Cymbal set',
+      opt_double_pedal: 'Double bass drum pedal',
+      opt_solo: 'Drums or vocals only',
       request_button: 'Send booking',
       sending: 'Sending…',
-      stripe_note: 'Payment is handled by Stripe. On the payment page, set the quantity to {n}.',
       confirm_note: 'We’ll confirm the time by phone or email once we receive your booking.',
       mixing_note: 'Leave your details and we’ll write or call you back to talk it through. Feel free to describe your songs.',
       error_invalid: 'Please fill in all required fields.',
@@ -222,9 +231,12 @@ const bookingCopy: Record<Language, BookingCopy> = {
       notes: 'Коментар (необов’язково)',
       total: 'До сплати',
       pay_button: 'Перейти до оплати',
+      extras: 'Додатково',
+      opt_cymbals: 'Комплект тарілок',
+      opt_double_pedal: 'Подвійна педаль',
+      opt_solo: 'Тільки барабани або тільки вокал',
       request_button: 'Надіслати бронювання',
       sending: 'Надсилаємо…',
-      stripe_note: 'Оплату обробляє Stripe. На сторінці оплати вкажіть кількість {n}.',
       confirm_note: 'Ми підтвердимо час телефоном або e-mail, щойно отримаємо бронювання.',
       mixing_note: 'Залиште контакти, і ми напишемо або передзвонимо, щоб обговорити деталі. Сміливо опишіть свої треки.',
       error_invalid: 'Заповніть усі обов’язкові поля.',
@@ -286,9 +298,12 @@ const bookingCopy: Record<Language, BookingCopy> = {
       notes: 'Каментарый (неабавязкова)',
       total: 'Да аплаты',
       pay_button: 'Перайсці да аплаты',
+      extras: 'Дадаткова',
+      opt_cymbals: 'Камплект талерак',
+      opt_double_pedal: 'Падвойная педаль',
+      opt_solo: 'Толькі барабаны або толькі вакал',
       request_button: 'Адправіць браніраванне',
       sending: 'Адпраўляем…',
-      stripe_note: 'Аплату апрацоўвае Stripe. На старонцы аплаты пазначце колькасць {n}.',
       confirm_note: 'Мы пацвердзім час па тэлефоне або e-mail, як толькі атрымаем браніраванне.',
       mixing_note: 'Пакіньце кантакты, і мы напішам або ператэлефануем, каб абмеркаваць дэталі. Смела апішыце свае трэкі.',
       error_invalid: 'Запоўніце ўсе абавязковыя палі.',
@@ -350,9 +365,12 @@ const bookingCopy: Record<Language, BookingCopy> = {
       notes: 'Комментарий (необязательно)',
       total: 'К оплате',
       pay_button: 'Перейти к оплате',
+      extras: 'Дополнительно',
+      opt_cymbals: 'Комплект тарелок',
+      opt_double_pedal: 'Двойная педаль',
+      opt_solo: 'Только барабаны или только вокал',
       request_button: 'Отправить бронирование',
       sending: 'Отправляем…',
-      stripe_note: 'Оплату обрабатывает Stripe. На странице оплаты укажите количество {n}.',
       confirm_note: 'Мы подтвердим время по телефону или e-mail, как только получим бронирование.',
       mixing_note: 'Оставьте контакты, и мы напишем или перезвоним, чтобы обсудить детали. Смело опишите свои треки.',
       error_invalid: 'Заполните все обязательные поля.',
