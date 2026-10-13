@@ -3,12 +3,12 @@ import type { SiteCopy } from './types';
 const copy: SiteCopy = {
   home: {
     title: 'Recording Studio Warsaw — Sanctum Sound | Praga',
-    desc: 'Recording studio in Warsaw (Praga-Południe): record a song from 120 PLN/h, mixing & mastering from 400 PLN, rehearsal studio from 60 PLN/h. Rap, vocals, bands.',
+    desc: 'Recording studio in Warsaw (Praga-Południe): record a song from 120 PLN/h, mixing & mastering from 400 PLN, rehearsal studio from 50 PLN/h. Rap, vocals, bands.',
     aboutH2: 'A music studio in Warsaw for singers, rappers and bands',
     about: [
       'Sanctum Sound is a professional recording studio in Warsaw for singers, rappers, bands and producers who want a finished track they’re proud of. A sound engineer runs every session, so you can focus on the performance while we take care of microphones, levels and takes.',
       'We record rap and hip-hop as well as pop, rock and everything in between: vocals, guitars, bass, drums, keys, strings and wind. Once the takes are in, we handle editing, mixing and mastering, or help you build the arrangement from a rough idea to a release-ready song. Recording starts at 120 PLN per hour; mixing and mastering at 400 PLN per song.',
-      'You’ll find us at Aleja Stanów Zjednoczonych 67 — a recording studio in Praga, Warsaw, on the right bank of the Vistula. Under the same roof there’s an acoustically treated rehearsal room from 60 PLN per hour, and we rent out PA systems, microphones and amps. Among the recording studios in Warsaw, Poland, we aim to be the one that’s easy to book and easy to work with.',
+      'You’ll find us at Aleja Stanów Zjednoczonych 67 — a recording studio in Praga, Warsaw, on the right bank of the Vistula. Under the same roof there’s an acoustically treated rehearsal room from 50 PLN per hour, and we rent out PA systems, microphones and amps. Among the recording studios in Warsaw, Poland, we aim to be the one that’s easy to book and easy to work with.',
     ],
   },
 
@@ -73,10 +73,10 @@ const copy: SiteCopy = {
   },
 
   rehearsals: {
-    title: 'Rehearsal Studio Warsaw — Hourly from 60 PLN | Sanctum',
-    desc: 'Rehearsal studio in Warsaw (Praga-Południe) with full backline, drum kit, 800 W PA and air conditioning. Hourly hire from 60 PLN or regular weekly slots.',
+    title: 'Rehearsal Studio Warsaw — Hourly from 50 PLN | Sanctum',
+    desc: 'Rehearsal studio in Warsaw (Praga-Południe) with full backline, drum kit, 800 W PA and air conditioning. Hourly hire from 50 PLN or regular weekly slots.',
     h1: 'Rehearsal studio in Warsaw (Praga)',
-    intro: 'Sanctum Sound runs an acoustically treated rehearsal studio in Warsaw’s Praga-Południe district, ready for bands, duos and solo musicians. Turn up with your instruments and play: the backline, drum kit and PA are already in the room, and cables are included free. Room rental starts at 60 PLN per hour.',
+    intro: 'Sanctum Sound runs an acoustically treated rehearsal studio in Warsaw’s Praga-Południe district, ready for bands, duos and solo musicians. Turn up with your instruments and play: the backline, drum kit and PA are already in the room, and cables are included free. Room rental starts at 50 PLN per hour.',
     sections: [
       {
         h2: 'A band rehearsal room with full backline',
@@ -106,7 +106,7 @@ const copy: SiteCopy = {
       {
         h2: 'Price and booking',
         body: [
-          'Rehearsal room hire starts at 60 PLN per hour, with the backline, PA and cables included. To book, use the contact form on this site, call +48 881 238 684 or message @sanctum_sound_studio on Instagram, and tell us which day suits you and whether you’re after a one-off session or a regular slot.',
+          'Rehearsal room hire starts at 50 PLN per hour, with the backline, PA and cables included. To book, use the contact form on this site, call +48 881 238 684 or message @sanctum_sound_studio on Instagram, and tell us which day suits you and whether you’re after a one-off session or a regular slot.',
         ],
       },
       {
@@ -123,7 +123,7 @@ const copy: SiteCopy = {
       },
       {
         q: 'Can I book the rehearsal studio for just one hour?',
-        a: 'Yes. The room can be booked by the hour, from 60 PLN per hour.',
+        a: 'Yes. The room can be booked by the hour, from 50 PLN per hour.',
       },
       {
         q: 'Do you offer regular weekly slots?',
@@ -201,7 +201,7 @@ const copy: SiteCopy = {
 
   price: {
     title: 'Recording Studio Prices Warsaw — Sanctum Sound',
-    desc: 'Recording studio prices in Warsaw at Sanctum Sound: recording from 120 PLN/h, rehearsal room from 60 PLN/h, mixing and mastering from 400 PLN per song.',
+    desc: 'Recording studio prices in Warsaw at Sanctum Sound: recording from 120 PLN/h, rehearsal room from 50 PLN/h, mixing and mastering from 400 PLN per song.',
     h1: 'Recording studio and rehearsal prices',
     intro: 'Here are Sanctum Sound’s recording studio prices in Warsaw, along with what each rate actually covers, so you can plan your budget before you book. The final cost of a project depends mainly on how much time it needs.',
     sections: [
@@ -229,7 +229,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Rehearsal room — from 60 PLN per hour',
+        h2: 'Rehearsal room — from 50 PLN per hour',
         body: [
           'The rehearsal room can be booked by the hour or as a regular weekly slot. Every booking includes the full backline (tube guitar amps, bass amps and a drum kit), an 800 W PA, free cables, air conditioning and free coffee or tea.',
         ],

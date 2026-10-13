@@ -27,7 +27,7 @@ export const usePricePackages = (): PricePackage[] => {
     {
       name: t('price_rehearsal_name'),
       prefix: t('price_from'),
-      price: '60 zł',
+      price: '50 zł',
       unit: t('unit_hour'),
       features: [
         t('price_rehearsal_feature1'),

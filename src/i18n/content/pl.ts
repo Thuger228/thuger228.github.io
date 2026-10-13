@@ -3,7 +3,7 @@ import type { SiteCopy } from './types';
 const copy: SiteCopy = {
   home: {
     title: 'Studio nagrań Warszawa — Sanctum Sound | Praga-Południe',
-    desc: 'Studio nagrań w Warszawie na Pradze-Południe: nagranie piosenki od 120 zł/h, miks i mastering od 400 zł, sala prób od 60 zł/h. Rap, hip-hop, wokal, zespoły.',
+    desc: 'Studio nagrań w Warszawie na Pradze-Południe: nagranie piosenki od 120 zł/h, miks i mastering od 400 zł, sala prób od 50 zł/h. Rap, hip-hop, wokal, zespoły.',
     aboutH2: 'Studio nagraniowe i sala prób na Pradze-Południe',
     about: [
       'Sanctum Sound to studio nagrań w Warszawie przy Alei Stanów Zjednoczonych 67. Nagrywamy wokal, instrumenty i całe zespoły, robimy miks, mastering i produkcję, a obok reżyserki działa sala prób z pełnym backline’em.',
@@ -72,11 +72,11 @@ const copy: SiteCopy = {
   },
 
   rehearsals: {
-    title: 'Sala prób Warszawa Praga — od 60 zł/h | Sanctum Sound',
-    desc: 'Sala prób w Warszawie na Pradze-Południe: pełen backline, perkusja, nagłośnienie 800 W, klimatyzacja. Wynajem na godziny od 60 zł lub stałe terminy.',
+    title: 'Sala prób Warszawa Praga — od 50 zł/h | Sanctum Sound',
+    desc: 'Sala prób w Warszawie na Pradze-Południe: pełen backline, perkusja, nagłośnienie 800 W, klimatyzacja. Wynajem na godziny od 50 zł lub stałe terminy.',
     h1: 'Sala prób w Warszawie (Praga) — wynajem na godziny',
     intro:
-      'Szukasz sali prób w Warszawie na Pradze? Nasza sala jest wyciszona akustycznie, ma pełen backline i nagłośnienie 800 W, a wynajem kosztuje od 60 zł za godzinę. Przychodzisz z instrumentem i grasz, resztę mamy na miejscu.',
+      'Szukasz sali prób w Warszawie na Pradze? Nasza sala jest wyciszona akustycznie, ma pełen backline i nagłośnienie 800 W, a wynajem kosztuje od 50 zł za godzinę. Przychodzisz z instrumentem i grasz, resztę mamy na miejscu.',
     sections: [
       {
         h2: 'Co jest na sali prób',
@@ -100,7 +100,7 @@ const copy: SiteCopy = {
       {
         h2: 'Sala prób Warszawa — cennik i rezerwacja',
         body: [
-          'Wynajem sali prób kosztuje od 60 zł za godzinę. Rezerwujesz przez formularz na stronie, telefonicznie lub na Instagramie. Jeśli chcesz nagrać próbę albo demo, zrobimy to w studiu obok.',
+          'Wynajem sali prób kosztuje od 50 zł za godzinę. Rezerwujesz przez formularz na stronie, telefonicznie lub na Instagramie. Jeśli chcesz nagrać próbę albo demo, zrobimy to w studiu obok.',
         ],
       },
       {
@@ -113,7 +113,7 @@ const copy: SiteCopy = {
     faq: [
       {
         q: 'Ile kosztuje godzina na sali prób?',
-        a: 'Wynajem sali prób kosztuje od 60 zł za godzinę. W cenie jest pełen backline, perkusja, nagłośnienie 800 W i kable.',
+        a: 'Wynajem sali prób kosztuje od 50 zł za godzinę. W cenie jest pełen backline, perkusja, nagłośnienie 800 W i kable.',
       },
       {
         q: 'Czy można wynająć salę prób na stałe terminy?',
@@ -195,10 +195,10 @@ const copy: SiteCopy = {
 
   price: {
     title: 'Cennik studia nagrań Warszawa — nagranie, sala prób, miks',
-    desc: 'Cennik Sanctum Sound w Warszawie: nagranie w studio od 120 zł/h, sala prób od 60 zł/h, miks i mastering od 400 zł za utwór. Sprawdź, co jest w cenie.',
+    desc: 'Cennik Sanctum Sound w Warszawie: nagranie w studio od 120 zł/h, sala prób od 50 zł/h, miks i mastering od 400 zł za utwór. Sprawdź, co jest w cenie.',
     h1: 'Cennik studia nagrań i sali prób w Warszawie',
     intro:
-      'Studio nagrań: cena zależy od tego, ile czasu potrzebujesz i co ma się wydarzyć z nagraniem. Poniżej są nasze ceny wyjściowe: nagranie od 120 zł za godzinę, sala prób od 60 zł za godzinę oraz miks i mastering od 400 zł za utwór.',
+      'Studio nagrań: cena zależy od tego, ile czasu potrzebujesz i co ma się wydarzyć z nagraniem. Poniżej są nasze ceny wyjściowe: nagranie od 120 zł za godzinę, sala prób od 50 zł za godzinę oraz miks i mastering od 400 zł za utwór.',
     sections: [
       {
         h2: 'Studio nagrań — cena za godzinę',
@@ -227,7 +227,7 @@ const copy: SiteCopy = {
       {
         h2: 'Sala prób Warszawa — cennik',
         body: [
-          'Sala prób kosztuje od 60 zł za godzinę, z pełnym backline’em, perkusją, nagłośnieniem 800 W i kablami. Wynajem sprzętu i nagłośnienia wyceniamy indywidualnie.',
+          'Sala prób kosztuje od 50 zł za godzinę, z pełnym backline’em, perkusją, nagłośnieniem 800 W i kablami. Wynajem sprzętu i nagłośnienia wyceniamy indywidualnie.',
         ],
       },
     ],
