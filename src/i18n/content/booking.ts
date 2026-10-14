@@ -10,6 +10,7 @@ export interface BookingFormCopy {
   date: string;
   time: string;
   hours: string;
+  hour_short: string; // unit on the duration buttons, e.g. "2 godz."
   // Recording and mixing are requests (no date, no online payment): the studio writes or calls back.
   recording_note: string;
   describe_recording: string;
@@ -35,6 +36,7 @@ export interface BookingFormCopy {
   mixing_note: string;
   error_invalid: string;
   error_send: string;
+  pay_error: string; // the Stripe payment page couldn't be opened
   request_sent_title: string;
   request_sent_text: string;
   paid_title: string;
@@ -69,7 +71,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
           h2: 'Jak działa rezerwacja',
           body: ['Wolisz porozmawiać? Zadzwoń pod +48 881 238 684 albo napisz przez formularz kontaktowy.'],
           list: [
-            'Sala prób: wybierz czas trwania (1–4 h) i dodatki.',
+            'Sala prób: wybierz czas trwania (1–4 godz.) i dodatki.',
             'Wskaż wolny dzień i godzinę w kalendarzu.',
             'Podaj imię, e-mail i telefon, a potem zapłać online przez Stripe.',
             'Nagranie, miks i mastering: wyślij zapytanie, a odpiszemy lub oddzwonimy.',
@@ -83,6 +85,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       date: 'Data',
       time: 'Godzina rozpoczęcia',
       hours: 'Liczba godzin',
+      hour_short: 'godz.',
       recording_note: 'Zostaw kontakt, a odpiszemy lub oddzwonimy, żeby ustalić termin i szczegóły. Śmiało opisz, co chcesz nagrać.',
       describe_recording: 'Co chcesz nagrać (opcjonalnie)',
       describe_recording_hint: 'Ile utworów, solo czy zespół, gatunek, pasujące dni…',
@@ -107,6 +110,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       mixing_note: 'Zostaw kontakt, a odpiszemy lub oddzwonimy, żeby omówić szczegóły. Śmiało opisz swoje utwory.',
       error_invalid: 'Uzupełnij wszystkie wymagane pola.',
       error_send: 'Nie udało się wysłać rezerwacji. Spróbuj ponownie albo zadzwoń: +48 881 238 684.',
+      pay_error: 'Nie udało się otworzyć płatności, nic nie zostało zarezerwowane ani pobrane. Spróbuj ponownie za chwilę albo zadzwoń: +48 881 238 684.',
       request_sent_title: 'Rezerwacja wysłana',
       request_sent_text: 'Dziękujemy! Skontaktujemy się, żeby potwierdzić termin i płatność.',
       paid_title: 'Dziękujemy, płatność przyjęta',
@@ -150,6 +154,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       date: 'Date',
       time: 'Start time',
       hours: 'Hours',
+      hour_short: 'h',
       recording_note: 'Leave your details and we’ll write or call you back to agree the date and details. Feel free to describe what you want to record.',
       describe_recording: 'What you want to record (optional)',
       describe_recording_hint: 'How many songs, solo or band, genre, days that suit you…',
@@ -174,6 +179,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       mixing_note: 'Leave your details and we’ll write or call you back to talk it through. Feel free to describe your songs.',
       error_invalid: 'Please fill in all required fields.',
       error_send: 'We couldn’t send your booking. Please try again or call +48 881 238 684.',
+      pay_error: 'We couldn’t open the payment page, so nothing was booked or charged. Please try again in a moment or call +48 881 238 684.',
       request_sent_title: 'Booking sent',
       request_sent_text: 'Thank you! We’ll contact you to confirm the time and payment.',
       paid_title: 'Thank you, payment received',
@@ -217,6 +223,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       date: 'Дата',
       time: 'Час початку',
       hours: 'Кількість годин',
+      hour_short: 'год',
       recording_note: 'Залиште контакти, і ми напишемо або передзвонимо, щоб узгодити дату й деталі. Сміливо опишіть, що хочете записати.',
       describe_recording: 'Що хочете записати (необов’язково)',
       describe_recording_hint: 'Скільки треків, соло чи гурт, жанр, зручні дні…',
@@ -241,6 +248,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       mixing_note: 'Залиште контакти, і ми напишемо або передзвонимо, щоб обговорити деталі. Сміливо опишіть свої треки.',
       error_invalid: 'Заповніть усі обов’язкові поля.',
       error_send: 'Не вдалося надіслати бронювання. Спробуйте ще раз або зателефонуйте: +48 881 238 684.',
+      pay_error: 'Не вдалося відкрити сторінку оплати, нічого не заброньовано і не списано. Спробуйте ще раз за хвилину або зателефонуйте: +48 881 238 684.',
       request_sent_title: 'Бронювання надіслано',
       request_sent_text: 'Дякуємо! Ми зв’яжемося з вами, щоб підтвердити час і оплату.',
       paid_title: 'Дякуємо, оплату отримано',
@@ -284,6 +292,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       date: 'Дата',
       time: 'Час пачатку',
       hours: 'Колькасць гадзін',
+      hour_short: 'гадз',
       recording_note: 'Пакіньце кантакты, і мы напішам або ператэлефануем, каб узгадніць дату і дэталі. Смела апішыце, што хочаце запісаць.',
       describe_recording: 'Што хочаце запісаць (неабавязкова)',
       describe_recording_hint: 'Колькі трэкаў, сола ці гурт, жанр, зручныя дні…',
@@ -308,6 +317,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       mixing_note: 'Пакіньце кантакты, і мы напішам або ператэлефануем, каб абмеркаваць дэталі. Смела апішыце свае трэкі.',
       error_invalid: 'Запоўніце ўсе абавязковыя палі.',
       error_send: 'Не атрымалася адправіць браніраванне. Паспрабуйце яшчэ раз або патэлефануйце: +48 881 238 684.',
+      pay_error: 'Не атрымалася адкрыць старонку аплаты, нічога не забраніравана і не спісана. Паспрабуйце яшчэ раз праз хвіліну або патэлефануйце: +48 881 238 684.',
       request_sent_title: 'Браніраванне адпраўлена',
       request_sent_text: 'Дзякуй! Мы звяжамся з вамі, каб пацвердзіць час і аплату.',
       paid_title: 'Дзякуй, аплата атрымана',
@@ -351,6 +361,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       date: 'Дата',
       time: 'Время начала',
       hours: 'Количество часов',
+      hour_short: 'ч',
       recording_note: 'Оставьте контакты, и мы напишем или перезвоним, чтобы согласовать дату и детали. Смело опишите, что хотите записать.',
       describe_recording: 'Что хотите записать (необязательно)',
       describe_recording_hint: 'Сколько треков, соло или группа, жанр, удобные дни…',
@@ -375,6 +386,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
       mixing_note: 'Оставьте контакты, и мы напишем или перезвоним, чтобы обсудить детали. Смело опишите свои треки.',
       error_invalid: 'Заполните все обязательные поля.',
       error_send: 'Не удалось отправить бронирование. Попробуйте ещё раз или позвоните: +48 881 238 684.',
+      pay_error: 'Не удалось открыть страницу оплаты, ничего не забронировано и не списано. Попробуйте ещё раз через минуту или позвоните: +48 881 238 684.',
       request_sent_title: 'Бронирование отправлено',
       request_sent_text: 'Спасибо! Мы свяжемся с вами, чтобы подтвердить время и оплату.',
       paid_title: 'Спасибо, оплата получена',

@@ -388,7 +388,14 @@ const BookingForm = () => {
       }
       // Only ever send the customer to Stripe's own checkout page.
       if (hold.status === 'held' && hold.checkoutUrl?.startsWith('https://checkout.stripe.com/')) checkoutUrl = hold.checkoutUrl;
-      // 'unavailable', or no checkout (Stripe not set up): carry on, the studio confirms by hand.
+      if (payOnline && !checkoutUrl) {
+        // No payment page (connection lost, calendar or Stripe error): nothing is booked or paid, so say so
+        // and free the slot in case the hold went through before the answer was lost.
+        releaseHold(reference);
+        toast({ title: c.pay_error, variant: 'destructive' });
+        stopLoading();
+        return;
+      }
     }
 
     // 2. Email the booking to the studio.
@@ -619,7 +626,7 @@ const BookingForm = () => {
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  {n} h
+                  {n} {c.hour_short}
                 </button>
               ))}
             </div>
