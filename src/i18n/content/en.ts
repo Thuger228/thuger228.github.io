@@ -2,21 +2,21 @@ import type { SiteCopy } from './types';
 
 const copy: SiteCopy = {
   home: {
-    title: 'Recording Studio Warsaw — Sanctum Sound | Praga',
+    title: 'Recording Studio Warsaw - Sanctum Sound | Praga',
     desc: 'Recording studio in Warsaw (Praga-Południe): record a song from 120 PLN/h, mixing & mastering from 400 PLN, rehearsal studio from 50 PLN/h. Rap, vocals, bands.',
     aboutH2: 'A music studio in Warsaw for singers, rappers and bands',
     about: [
       'Sanctum Sound is a professional recording studio in Warsaw for singers, rappers, bands and producers who want a finished track they’re proud of. A sound engineer runs every session, so you can focus on the performance while we take care of microphones, levels and takes.',
       'We record rap and hip-hop as well as pop, rock and everything in between: vocals, guitars, bass, drums, keys, strings and wind. Once the takes are in, we handle editing, mixing and mastering, or help you build the arrangement from a rough idea to a release-ready song. Recording starts at 120 PLN per hour; mixing and mastering at 400 PLN per song.',
-      'You’ll find us at Aleja Stanów Zjednoczonych 67 — a recording studio in Praga, Warsaw, on the right bank of the Vistula. Under the same roof there’s an acoustically treated rehearsal room from 50 PLN per hour, and we rent out PA systems, microphones and amps. Among the recording studios in Warsaw, Poland, we aim to be the one that’s easy to book and easy to work with.',
+      'You’ll find us at Aleja Stanów Zjednoczonych 67 - a recording studio in Praga, Warsaw, on the right bank of the Vistula. Under the same roof there’s an acoustically treated rehearsal room from 50 PLN per hour, and we rent out PA systems, microphones and amps. Among the recording studios in Warsaw, Poland, we aim to be the one that’s easy to book and easy to work with.',
     ],
   },
 
   recording: {
-    title: 'Record a Song in Warsaw — Vocals, Mixing & Mastering',
+    title: 'Record a Song in Warsaw - Vocals, Mixing & Mastering',
     desc: 'Vocal recording in Warsaw for singers, rappers and bands: from 120 PLN/h with a sound engineer, mixing and mastering from 400 PLN per song. Praga-Południe.',
     h1: 'Recording, mixing and mastering in Warsaw',
-    intro: 'Sanctum Sound offers vocal recording in Warsaw, along with instrument and band sessions, mixing, mastering and full music production — all under one roof in Praga-Południe. A sound engineer runs every session, you get full access to the studio gear, and you leave with digital files of your recordings. Sessions start at 120 PLN per hour.',
+    intro: 'Sanctum Sound offers vocal recording in Warsaw, along with instrument and band sessions, mixing, mastering and full music production - all under one roof in Praga-Południe. A sound engineer runs every session, you get full access to the studio gear, and you leave with digital files of your recordings. Sessions start at 120 PLN per hour.',
     sections: [
       {
         h2: 'Vocal and rap recording',
@@ -29,7 +29,7 @@ const copy: SiteCopy = {
         h2: 'Band and instrument recording',
         body: [
           'As a band recording studio in Warsaw, we track guitars, bass, drums, keys, strings and wind instruments. Guitarists can play through Marshall, Randall, Peavey and Blackstar amps; bassists can plug into Darkglass or Warwick. Drum editing is available, so the groove locks in before the mix.',
-          'Come with a finished song or a rough demo — we’ll plan the session with you so your studio time goes into playing rather than setting up.',
+          'Come with a finished song or a rough demo - we’ll plan the session with you so your studio time goes into playing rather than setting up.',
         ],
       },
       {
@@ -41,7 +41,7 @@ const copy: SiteCopy = {
       {
         h2: 'Music production and arrangement',
         body: [
-          'Got an idea but no finished track? Working with a music producer in Warsaw can take it from a voice memo to a song you can release. We help shape the arrangement, record vocals and instruments, then edit, mix and master the result — one team from start to finish.',
+          'Got an idea but no finished track? Working with a music producer in Warsaw can take it from a voice memo to a song you can release. We help shape the arrangement, record vocals and instruments, then edit, mix and master the result - one team from start to finish.',
         ],
       },
       {
@@ -73,7 +73,7 @@ const copy: SiteCopy = {
   },
 
   rehearsals: {
-    title: 'Rehearsal Studio Warsaw — Hourly from 50 PLN | Sanctum',
+    title: 'Rehearsal Studio Warsaw - Hourly from 50 PLN | Sanctum',
     desc: 'Rehearsal studio in Warsaw (Praga-Południe) with full backline, drum kit, 800 W PA and air conditioning. Hourly hire from 50 PLN or regular weekly slots.',
     h1: 'Rehearsal studio in Warsaw (Praga)',
     intro: 'Sanctum Sound runs an acoustically treated rehearsal studio in Warsaw’s Praga-Południe district, ready for bands, duos and solo musicians. Turn up with your instruments and play: the backline, drum kit and PA are already in the room, and cables are included free. Room rental starts at 50 PLN per hour.',
@@ -100,7 +100,7 @@ const copy: SiteCopy = {
       {
         h2: 'Hourly bookings or a regular weekly slot',
         body: [
-          'Need a room for an hour before a gig, to try out new material or for a one-off jam? An hourly rehearsal studio in Warsaw is exactly that — book the time you need and nothing more. Bands that rehearse every week can take a regular slot on the same day and time. Musicians who just want to play together use it as a jam room in Warsaw, too.',
+          'Need a room for an hour before a gig, to try out new material or for a one-off jam? An hourly rehearsal studio in Warsaw is exactly that - book the time you need and nothing more. Bands that rehearse every week can take a regular slot on the same day and time. Musicians who just want to play together use it as a jam room in Warsaw, too.',
         ],
       },
       {
@@ -145,7 +145,7 @@ const copy: SiteCopy = {
       {
         h2: 'PA systems up to 800 W',
         body: [
-          'Our PA systems go up to 800 W — a good fit for small gigs, private parties, speeches and band rehearsals. Let us know the venue and roughly how many people you expect, and we’ll recommend the right setup.',
+          'Our PA systems go up to 800 W - a good fit for small gigs, private parties, speeches and band rehearsals. Let us know the venue and roughly how many people you expect, and we’ll recommend the right setup.',
         ],
       },
       {
@@ -200,13 +200,13 @@ const copy: SiteCopy = {
   },
 
   price: {
-    title: 'Recording Studio Prices Warsaw — Sanctum Sound',
+    title: 'Recording Studio Prices Warsaw - Sanctum Sound',
     desc: 'Recording studio prices in Warsaw at Sanctum Sound: recording from 120 PLN/h, rehearsal room from 50 PLN/h, mixing and mastering from 400 PLN per song.',
     h1: 'Recording studio and rehearsal prices',
     intro: 'Here are Sanctum Sound’s recording studio prices in Warsaw, along with what each rate actually covers, so you can plan your budget before you book. The final cost of a project depends mainly on how much time it needs.',
     sections: [
       {
-        h2: 'Recording — from 120 PLN per hour',
+        h2: 'Recording - from 120 PLN per hour',
         body: [
           'Our recording studio hourly rate starts at 120 PLN and includes:',
         ],
@@ -218,7 +218,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Mixing and mastering — from 400 PLN per song',
+        h2: 'Mixing and mastering - from 400 PLN per song',
         body: [
           'Mixing and mastering are priced per song rather than per hour, so you know the cost upfront. The price includes:',
         ],
@@ -229,13 +229,13 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Rehearsal room — from 50 PLN per hour',
+        h2: 'Rehearsal room - from 50 PLN per hour',
         body: [
           'The rehearsal room can be booked by the hour or as a regular weekly slot. Every booking includes the full backline (tube guitar amps, bass amps and a drum kit), an 800 W PA, free cables, air conditioning and free coffee or tea.',
         ],
       },
       {
-        h2: 'Equipment rental — individual quote',
+        h2: 'Equipment rental - individual quote',
         body: [
           'PA systems, microphones, guitar and bass amps, stands, cables and keyboards are available for hire. Each rental is quoted individually, depending on the gear, the dates and whether you need delivery.',
         ],
@@ -274,15 +274,15 @@ const copy: SiteCopy = {
   },
 
   contact: {
-    title: 'Contact & Booking — Recording Studio in Warsaw',
+    title: 'Contact & Booking - Recording Studio in Warsaw',
     desc: 'Book a recording studio in Warsaw: Sanctum Sound, Aleja Stanów Zjednoczonych 67, Praga-Południe. Call +48 881 238 684, use the form or message us on Instagram.',
-    h1: 'Contact and booking — recording studio in Warsaw',
+    h1: 'Contact and booking - recording studio in Warsaw',
     intro: 'Want to book a session at our recording studio in Warsaw, reserve the rehearsal room or ask about equipment rental? Get in touch whichever way suits you and we’ll reply with available dates. Sanctum Sound brings recording, mixing and mastering, a rehearsal room and equipment hire together at one address in Praga-Południe, so one message is enough to sort out everything you need.',
     sections: [
       {
         h2: 'How to book',
         body: [
-          'Fill in the contact form on this page, call us on +48 881 238 684, message @sanctum_sound_studio on Instagram or email support@sanctum-sa.com. Let us know what you’d like to do — recording, mixing, a rehearsal or rental — and which dates work for you.',
+          'Fill in the contact form on this page, call us on +48 881 238 684, message @sanctum_sound_studio on Instagram or email support@sanctum-sa.com. Let us know what you’d like to do - recording, mixing, a rehearsal or rental - and which dates work for you.',
         ],
         list: [
           'Sanctum Sound, Aleja Stanów Zjednoczonych 67, 03-770 Warszawa (Praga-Południe)',
@@ -294,7 +294,7 @@ const copy: SiteCopy = {
       {
         h2: 'How to get there',
         body: [
-          'The studio is on Aleja Stanów Zjednoczonych in Praga-Południe, a main road on the right bank of the Vistula that’s well served by city buses and trams. The easiest way to plan your trip from anywhere in Warsaw is Google Maps or the Jakdojade app — just enter our address. Bringing a lot of gear for a band session? Let us know when you book and we’ll help you plan the load-in.',
+          'The studio is on Aleja Stanów Zjednoczonych in Praga-Południe, a main road on the right bank of the Vistula that’s well served by city buses and trams. The easiest way to plan your trip from anywhere in Warsaw is Google Maps or the Jakdojade app - just enter our address. Bringing a lot of gear for a band session? Let us know when you book and we’ll help you plan the load-in.',
         ],
       },
     ],
@@ -303,14 +303,14 @@ const copy: SiteCopy = {
 
   voucher: {
     title: 'Recording Studio Gift Voucher Warsaw | Sanctum Sound',
-    desc: 'Recording studio gift voucher in Warsaw — a present for a singer, rapper or musician: studio time with a sound engineer, mixing and mastering. Praga-Południe.',
+    desc: 'Recording studio gift voucher in Warsaw - a present for a singer, rapper or musician: studio time with a sound engineer, mixing and mastering. Praga-Południe.',
     h1: 'Recording studio gift voucher in Warsaw',
     intro: 'Looking for a present that someone will actually remember? A recording studio gift voucher in Warsaw from Sanctum Sound lets a singer, rapper or musician step into a real studio, work with a sound engineer and walk away with their own finished song.',
     sections: [
       {
         h2: 'A gift for a musician, singer or rapper',
         body: [
-          'It’s a gift for a musician who has been writing songs at home, for a friend who sings at every party, or for a young rapper with verses ready to go. No studio experience is needed — a sound engineer guides every session, from setting up the microphone to the final take.',
+          'It’s a gift for a musician who has been writing songs at home, for a friend who sings at every party, or for a young rapper with verses ready to go. No studio experience is needed - a sound engineer guides every session, from setting up the microphone to the final take.',
         ],
       },
       {
@@ -319,9 +319,9 @@ const copy: SiteCopy = {
           'Choose the package that fits the person and the occasion:',
         ],
         list: [
-          'One song — 2 hours of recording with a sound engineer, plus mixing and mastering of one song',
-          'Song + production — help with the arrangement and production, recording, then mixing and mastering',
-          'Rehearsal or studio time — a voucher for the number of hours you choose',
+          'One song - 2 hours of recording with a sound engineer, plus mixing and mastering of one song',
+          'Song + production - help with the arrangement and production, recording, then mixing and mastering',
+          'Rehearsal or studio time - a voucher for the number of hours you choose',
         ],
       },
       {

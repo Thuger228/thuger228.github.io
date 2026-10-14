@@ -1,6 +1,6 @@
 // Build-time pre-rendering: turns every route into a static HTML file so search engines,
 // social previews and AI crawlers get real content (and real URLs instead of 404s on GitHub Pages).
-// Runs after `vite build` (client) and `vite build --ssr` (server bundle) — see "build" in package.json.
+// Runs after `vite build` (client) and `vite build --ssr` (server bundle) - see "build" in package.json.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";

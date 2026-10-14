@@ -141,7 +141,7 @@ function book_(b) {
     const cal = calendar_();
     if (cal.getEvents(start, end).some((ev) => blocks_(ev, b.service))) return { error: 'slot_taken' };
 
-    ev = cal.createEvent((checkout ? '⏳ Nieopłacone: ' : '📝 Do potwierdzenia: ') + label + ' — ' + name, start, end, {
+    ev = cal.createEvent((checkout ? '⏳ Nieopłacone: ' : '📝 Do potwierdzenia: ') + label + ' - ' + name, start, end, {
       description: [
         'Rezerwacja: ' + b.reference,
         'Imię: ' + name,
@@ -159,7 +159,7 @@ function book_(b) {
     ev.setTag('sanctumService', b.service);
     ev.setTag('sanctumStatus', checkout ? 'pending' : 'request');
     ev.setTag('sanctumCreated', String(Date.now()));
-    ev.setTag('sanctumLabel', label + ' — ' + name);
+    ev.setTag('sanctumLabel', label + ' - ' + name);
     ev.setTag('sanctumEmail', clip_(b.email, 255));
     ev.setTag('sanctumName', name);
     ev.setTag('sanctumOptions', options.join(','));
@@ -185,7 +185,7 @@ function book_(b) {
     'line_items[0][price_data][currency]': 'pln',
     'line_items[0][price_data][unit_amount]': String(perHour * 100),
     'line_items[0][price_data][product_data][name]':
-      'Sala prób — 1 godz.' + (hourly.length ? ' (' + hourly.map((k) => opt(k).label).join(', ') + ')' : ''),
+      'Sala prób - 1 godz.' + (hourly.length ? ' (' + hourly.map((k) => opt(k).label).join(', ') + ')' : ''),
     'line_items[0][price_data][product_data][description]': b.date + ', ' + pad_(Math.floor(start_minute / 60)) + ':' + pad_(start_minute % 60),
   };
   // Fixed extras: one line each, charged once per rehearsal.
@@ -201,7 +201,7 @@ function book_(b) {
     // No payment page: free the slot, and the site tells the customer nothing was booked.
     // The reason is in Executions (the "Stripe ..." error line).
     ev.setTag('sanctumStatus', 'expired');
-    ev.setTitle('⌛ Błąd płatności Stripe: ' + label + ' — ' + name);
+    ev.setTitle('⌛ Błąd płatności Stripe: ' + label + ' - ' + name);
     return { error: 'checkout_failed' };
   }
   return { ok: true, checkout_url: session.url };

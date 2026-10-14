@@ -2,7 +2,7 @@ import type { SiteCopy } from './types';
 
 const copy: SiteCopy = {
   home: {
-    title: 'Studio nagrań Warszawa — Sanctum Sound | Praga-Południe',
+    title: 'Studio nagrań Warszawa - Sanctum Sound | Praga-Południe',
     desc: 'Studio nagrań w Warszawie na Pradze-Południe: nagranie piosenki od 120 zł/h, miks i mastering od 400 zł, sala prób od 50 zł/h. Rap, hip-hop, wokal, zespoły.',
     aboutH2: 'Studio nagraniowe i sala prób na Pradze-Południe',
     about: [
@@ -13,7 +13,7 @@ const copy: SiteCopy = {
   },
 
   recording: {
-    title: 'Nagranie piosenki w studio Warszawa — od 120 zł/h',
+    title: 'Nagranie piosenki w studio Warszawa - od 120 zł/h',
     desc: 'Nagranie piosenki w studio w Warszawie: wokal, rap, instrumenty i zespoły. Miks i mastering od 400 zł za utwór. Realizator na każdej sesji. Praga-Południe.',
     h1: 'Nagranie piosenki w studio w Warszawie',
     intro:
@@ -72,9 +72,9 @@ const copy: SiteCopy = {
   },
 
   rehearsals: {
-    title: 'Sala prób Warszawa Praga — od 50 zł/h | Sanctum Sound',
+    title: 'Sala prób Warszawa Praga - od 50 zł/h | Sanctum Sound',
     desc: 'Sala prób w Warszawie na Pradze-Południe: pełen backline, perkusja, nagłośnienie 800 W, klimatyzacja. Wynajem na godziny od 50 zł lub stałe terminy.',
-    h1: 'Sala prób w Warszawie (Praga) — wynajem na godziny',
+    h1: 'Sala prób w Warszawie (Praga) - wynajem na godziny',
     intro:
       'Szukasz sali prób w Warszawie na Pradze? Nasza sala jest wyciszona akustycznie, ma pełen backline i nagłośnienie 800 W, a wynajem kosztuje od 50 zł za godzinę. Przychodzisz z instrumentem i grasz, resztę mamy na miejscu.',
     sections: [
@@ -98,7 +98,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Sala prób Warszawa — cennik i rezerwacja',
+        h2: 'Sala prób Warszawa - cennik i rezerwacja',
         body: [
           'Wynajem sali prób kosztuje od 50 zł za godzinę. Rezerwujesz przez formularz na stronie, telefonicznie lub na Instagramie. Jeśli chcesz nagrać próbę albo demo, zrobimy to w studiu obok.',
         ],
@@ -131,7 +131,7 @@ const copy: SiteCopy = {
   },
 
   rent: {
-    title: 'Wynajem nagłośnienia Warszawa — sprzęt muzyczny | Sanctum',
+    title: 'Wynajem nagłośnienia Warszawa - sprzęt muzyczny | Sanctum',
     desc: 'Wynajem nagłośnienia i sprzętu muzycznego w Warszawie: systemy PA do 800 W, mikrofony Shure, AKG, Sennheiser, wzmacniacze gitarowe i basowe. Dostawa możliwa.',
     h1: 'Wynajem nagłośnienia i sprzętu muzycznego w Warszawie',
     intro:
@@ -167,7 +167,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Wynajem nagłośnienia — cennik',
+        h2: 'Wynajem nagłośnienia - cennik',
         body: [
           'Wynajem nagłośnienia w Warszawie wyceniamy indywidualnie, bo cena zależy od zestawu, czasu wynajmu i dostawy. Napisz, na jakie wydarzenie potrzebujesz sprzętu, ile osób się spodziewasz i czy potrzebna jest dostawa. Odpowiemy z wyceną.',
         ],
@@ -194,14 +194,14 @@ const copy: SiteCopy = {
   },
 
   price: {
-    title: 'Cennik studia nagrań Warszawa — nagranie, sala prób, miks',
+    title: 'Cennik studia nagrań Warszawa - nagranie, sala prób, miks',
     desc: 'Cennik Sanctum Sound w Warszawie: nagranie w studio od 120 zł/h, sala prób od 50 zł/h, miks i mastering od 400 zł za utwór. Sprawdź, co jest w cenie.',
     h1: 'Cennik studia nagrań i sali prób w Warszawie',
     intro:
       'Studio nagrań: cena zależy od tego, ile czasu potrzebujesz i co ma się wydarzyć z nagraniem. Poniżej są nasze ceny wyjściowe: nagranie od 120 zł za godzinę, sala prób od 50 zł za godzinę oraz miks i mastering od 400 zł za utwór.',
     sections: [
       {
-        h2: 'Studio nagrań — cena za godzinę',
+        h2: 'Studio nagrań - cena za godzinę',
         body: [
           'Godzina w studiu kosztuje od 120 zł. W cenie jest realizator dźwięku, pełny dostęp do mikrofonów i wzmacniaczy, pliki cyfrowe po sesji i jedna korekta. Płacisz za czas pracy, a nie za liczbę podejść.',
         ],
@@ -213,7 +213,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Mix i mastering — cena',
+        h2: 'Mix i mastering - cena',
         body: [
           'Mix i mastering kosztuje od 400 zł za utwór. W cenie jest edycja śladów i wokalu, nielimitowane poprawki i pomoc w przygotowaniu plików do publikacji.',
         ],
@@ -225,7 +225,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Sala prób Warszawa — cennik',
+        h2: 'Sala prób Warszawa - cennik',
         body: [
           'Sala prób kosztuje od 50 zł za godzinę, z pełnym backline’em, perkusją, nagłośnieniem 800 W i kablami. Wynajem sprzętu i nagłośnienia wyceniamy indywidualnie.',
         ],
@@ -252,9 +252,9 @@ const copy: SiteCopy = {
   },
 
   contact: {
-    title: 'Kontakt i rezerwacja — studio nagrań Sanctum Sound Warszawa',
+    title: 'Kontakt i rezerwacja - studio nagrań Sanctum Sound Warszawa',
     desc: 'Zarezerwuj termin w Sanctum Sound: Aleja Stanów Zjednoczonych 67, 03-770 Warszawa (Praga-Południe). Tel. +48 881 238 684, Instagram @sanctum_sound_studio.',
-    h1: 'Kontakt i rezerwacja — studio nagrań w Warszawie',
+    h1: 'Kontakt i rezerwacja - studio nagrań w Warszawie',
     intro:
       'Chcesz zarezerwować sesję nagraniową, salę prób albo sprzęt? Napisz przez formularz, zadzwoń pod +48 881 238 684 albo napisz na Instagramie @sanctum_sound_studio. Odpowiadamy najszybciej, jak to możliwe.',
     sections: [
@@ -275,14 +275,14 @@ const copy: SiteCopy = {
   },
 
   voucher: {
-    title: 'Nagranie piosenki w studio na prezent — voucher Warszawa',
-    desc: 'Voucher na nagranie piosenki w studio w Warszawie — prezent dla muzyka, wokalisty lub rapera. Nagranie z realizatorem, miks i mastering w cenie. Praga-Południe.',
-    h1: 'Voucher na nagranie piosenki w studio — prezent w Warszawie',
+    title: 'Nagranie piosenki w studio na prezent - voucher Warszawa',
+    desc: 'Voucher na nagranie piosenki w studio w Warszawie - prezent dla muzyka, wokalisty lub rapera. Nagranie z realizatorem, miks i mastering w cenie. Praga-Południe.',
+    h1: 'Voucher na nagranie piosenki w studio - prezent w Warszawie',
     intro:
       'Nagranie piosenki w studio na prezent w Warszawie to coś, co zostaje na lata. Osoba obdarowana przychodzi do Sanctum Sound na Pradze-Południe, nagrywa swój utwór z realizatorem, a potem dostaje gotowy, zmiksowany i zmasterowany plik.',
     sections: [
       {
-        h2: 'Voucher do studia nagrań w Warszawie — pakiety',
+        h2: 'Voucher do studia nagrań w Warszawie - pakiety',
         body: ['Do wyboru są trzy rodzaje voucherów. Cenę każdego pakietu ustalamy indywidualnie, napisz do nas, a przygotujemy ofertę:'],
         list: [
           'Jedna piosenka: 2 godziny nagrań z realizatorem oraz miks i mastering jednego utworu. Cena do uzgodnienia.',
@@ -291,7 +291,7 @@ const copy: SiteCopy = {
         ],
       },
       {
-        h2: 'Nagranie piosenki na prezent — co dostaje obdarowany',
+        h2: 'Nagranie piosenki na prezent - co dostaje obdarowany',
         body: [
           'Nagranie piosenki na prezent to sesja w profesjonalnym studiu, opieka realizatora od pierwszego podejścia do końca i gotowy plik do słuchania lub publikacji. Pomożemy dobrać podkład, przećwiczyć tekst i poczuć się swobodnie przed mikrofonem, nawet jeśli to pierwszy raz w studiu.',
         ],

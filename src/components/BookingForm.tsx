@@ -418,7 +418,7 @@ const BookingForm = () => {
           notes: parsed.data.notes || '-',
           language,
           payment: checkoutUrl ? 'Stripe (check the Stripe Dashboard for this reference)' : 'To arrange with the customer',
-          _subject: `New booking ${reference}: ${serviceName(serviceId)} — Sanctum Sound`,
+          _subject: `New booking ${reference}: ${serviceName(serviceId)} - Sanctum Sound`,
           _replyto: parsed.data.email,
           _template: 'table',
           _captcha: 'false',

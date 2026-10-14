@@ -59,7 +59,7 @@ const ContactForm = () => {
           topic: topic ? c.topics[topic] : '',
           language: language.toUpperCase(),
           message: parsed.data.message,
-          _subject: `${topicLabel}New contact from ${parsed.data.name} — Sanctum Sound`,
+          _subject: `${topicLabel}New contact from ${parsed.data.name} - Sanctum Sound`,
           _replyto: parsed.data.email,
           _template: 'table',
           _captcha: 'false',

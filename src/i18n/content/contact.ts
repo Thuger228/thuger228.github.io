@@ -53,7 +53,7 @@ const pl: ContactCopy = {
   copy: 'Kopiuj',
   copied: 'Skopiowano',
   form_title: 'Napisz do nas',
-  form_text: 'Odpowiadamy najszybciej, jak to możliwe — e-mailem albo telefonicznie.',
+  form_text: 'Odpowiadamy najszybciej, jak to możliwe - e-mailem albo telefonicznie.',
   topic_label: 'Czego dotyczy wiadomość?',
   topics: {
     rehearsal: 'Sala prób',
@@ -69,7 +69,7 @@ const pl: ContactCopy = {
   sent_text: 'Odezwiemy się najszybciej, jak to możliwe.',
   send_another: 'Wyślij kolejną wiadomość',
   rehearsal_tip_title: 'Szukasz sali prób?',
-  rehearsal_tip_text: 'Wybierz wolny termin w kalendarzu i zapłać online — bez czekania na odpowiedź.',
+  rehearsal_tip_text: 'Wybierz wolny termin w kalendarzu i zapłać online - bez czekania na odpowiedź.',
   rehearsal_tip_button: 'Zarezerwuj salę prób',
   map_title: 'Sanctum Sound na mapie Google',
 };
@@ -127,7 +127,7 @@ const uk: ContactCopy = {
   copy: 'Копіювати',
   copied: 'Скопійовано',
   form_title: 'Напишіть нам',
-  form_text: 'Відповідаємо якнайшвидше — електронною поштою або телефоном.',
+  form_text: 'Відповідаємо якнайшвидше - електронною поштою або телефоном.',
   topic_label: 'Чого стосується повідомлення?',
   topics: {
     rehearsal: 'Репетиційна зала',
@@ -143,7 +143,7 @@ const uk: ContactCopy = {
   sent_text: 'Ми відповімо якнайшвидше.',
   send_another: 'Надіслати ще одне',
   rehearsal_tip_title: 'Шукаєте репетиційну залу?',
-  rehearsal_tip_text: 'Оберіть вільний час у календарі й оплатіть онлайн — без очікування відповіді.',
+  rehearsal_tip_text: 'Оберіть вільний час у календарі й оплатіть онлайн - без очікування відповіді.',
   rehearsal_tip_button: 'Забронювати залу',
   map_title: 'Sanctum Sound на Google Maps',
 };
@@ -164,7 +164,7 @@ const be: ContactCopy = {
   copy: 'Капіяваць',
   copied: 'Скапіявана',
   form_title: 'Напішыце нам',
-  form_text: 'Адказваем як мага хутчэй — па e-mail або па тэлефоне.',
+  form_text: 'Адказваем як мага хутчэй - па e-mail або па тэлефоне.',
   topic_label: 'Чаго тычыцца паведамленне?',
   topics: {
     rehearsal: 'Рэпетыцыйная зала',
@@ -180,7 +180,7 @@ const be: ContactCopy = {
   sent_text: 'Мы адкажам як мага хутчэй.',
   send_another: 'Адправіць яшчэ адно',
   rehearsal_tip_title: 'Шукаеце рэпетыцыйную залу?',
-  rehearsal_tip_text: 'Выберыце вольны час у календары і аплаціце анлайн — без чакання адказу.',
+  rehearsal_tip_text: 'Выберыце вольны час у календары і аплаціце анлайн - без чакання адказу.',
   rehearsal_tip_button: 'Забраніраваць залу',
   map_title: 'Sanctum Sound на Google Maps',
 };
@@ -201,7 +201,7 @@ const ru: ContactCopy = {
   copy: 'Копировать',
   copied: 'Скопировано',
   form_title: 'Напишите нам',
-  form_text: 'Отвечаем как можно скорее — по e-mail или по телефону.',
+  form_text: 'Отвечаем как можно скорее - по e-mail или по телефону.',
   topic_label: 'Чего касается сообщение?',
   topics: {
     rehearsal: 'Репетиционный зал',
@@ -217,7 +217,7 @@ const ru: ContactCopy = {
   sent_text: 'Мы ответим как можно скорее.',
   send_another: 'Отправить ещё одно',
   rehearsal_tip_title: 'Ищете репетиционный зал?',
-  rehearsal_tip_text: 'Выберите свободное время в календаре и оплатите онлайн — без ожидания ответа.',
+  rehearsal_tip_text: 'Выберите свободное время в календаре и оплатите онлайн - без ожидания ответа.',
   rehearsal_tip_button: 'Забронировать зал',
   map_title: 'Sanctum Sound на Google Maps',
 };
