@@ -12,6 +12,9 @@
  * Script properties (Project Settings → Script properties):
  *   STRIPE_SECRET_KEY  a Stripe *restricted* key with "Checkout Sessions: Write" only (rk_live_...)
  *   CALENDAR_ID        optional; the calendar to use. Default: this account's main calendar.
+ *   TELEGRAM_BOT_TOKEN optional; a Telegram bot (from @BotFather) that posts every booking, payment
+ *                      and request to the studio's chat. See TELEGRAM-SETUP.md.
+ *   TELEGRAM_CHAT_ID   the chat it posts to (several chats: separate them with commas).
  *
  * Setup: paste this file, set the properties, run setup() once, then Deploy → New deployment →
  * Web app (Execute as: Me, Who has access: Anyone). See STRIPE-SETUP.md for the full steps.
@@ -61,6 +64,7 @@ function doPost(e) {
   if (body.action === 'book') return json_(book_(body));
   if (body.action === 'confirm') return json_(confirm_(body.session_id));
   if (body.action === 'cancel') return json_(cancel_(body.reference));
+  if (body.action === 'notify') return json_(notify_(body));
   return json_({ error: 'unknown_action' });
 }
 
@@ -168,7 +172,10 @@ function book_(b) {
   } finally {
     lock.releaseLock();
   }
-  if (!checkout) return { ok: true };
+  if (!checkout) {
+    telegramBooking_(ev, '📝 <b>Nowa rezerwacja do potwierdzenia</b>');
+    return { ok: true };
+  }
 
   // Stripe Checkout for the exact amount. If Stripe isn't set up or refuses, the booking stays as a
   // request the studio confirms by hand.
@@ -202,8 +209,10 @@ function book_(b) {
     // The reason is in Executions (the "Stripe ..." error line).
     ev.setTag('sanctumStatus', 'expired');
     ev.setTitle('⌛ Błąd płatności Stripe: ' + label + ' - ' + name);
+    telegramBooking_(ev, '⌛ <b>Błąd płatności Stripe, termin zwolniony</b>', true);
     return { error: 'checkout_failed' };
   }
+  telegramBooking_(ev, '⏳ <b>Nowa rezerwacja, czeka na płatność</b>', true);
   return { ok: true, checkout_url: session.url };
 }
 
@@ -215,6 +224,7 @@ function cancel_(reference) {
   if (ev && ev.getTag('sanctumStatus') === 'pending') {
     ev.setTag('sanctumStatus', 'expired');
     ev.setTitle('⌛ Anulowana (nieopłacona): ' + (ev.getTag('sanctumLabel') || ''));
+    telegramBooking_(ev, '⌛ <b>Klient wrócił ze Stripe bez płatności, termin zwolniony</b>', true);
   }
   return { ok: true };
 }
@@ -278,6 +288,7 @@ function syncStripe() {
       } else if (status === 'pending' && age > HOLD_MINUTES) {
         ev.setTag('sanctumStatus', 'expired');
         ev.setTitle('⌛ Wygasła (nieopłacona): ' + (ev.getTag('sanctumLabel') || ''));
+        telegramBooking_(ev, '⌛ <b>Rezerwacja wygasła (nieopłacona), termin zwolniony</b>', true);
       }
     });
 }
@@ -313,6 +324,12 @@ function markPaidLocked_(reference, session, m) {
   ev.setDescription(
     ev.getDescription() +
       '\nStripe: ' + session.id + ', ' + (session.amount_total / 100) + ' ' + String(session.currency || '').toUpperCase()
+  );
+  telegramBooking_(
+    ev,
+    clash
+      ? '⚠️ <b>KONFLIKT: opłacone, ale termin jest już zajęty.</b> Klient nie dostał potwierdzenia, skontaktuj się z nim.'
+      : '✅ <b>Opłacona rezerwacja</b>'
   );
   // A clash needs the studio to sort it out first, so no confirmation goes out for it.
   if (!clash) sendConfirmation_(ev, session);
@@ -555,6 +572,137 @@ function stripe_(path) {
     return null;
   }
   return JSON.parse(res.getContentText());
+}
+
+// ---------------------------------------------------------------- Telegram
+
+// Optional: a Telegram bot posts bookings, payments, requests and contact messages to the studio's
+// chat (script properties TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID). Messages are in Polish, like the
+// calendar. Never throws: a Telegram problem must not stop a booking or a payment.
+// quiet: the message arrives without a sound (holds and expiries); payments and requests ring.
+function telegram_(text, quiet) {
+  const props = PropertiesService.getScriptProperties();
+  const token = String(props.getProperty('TELEGRAM_BOT_TOKEN') || '').trim();
+  const chats = String(props.getProperty('TELEGRAM_CHAT_ID') || '')
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (!token || !chats.length) return false;
+  let ok = true;
+  try {
+    const res = UrlFetchApp.fetchAll(
+      chats.map((chat) => ({
+        url: 'https://api.telegram.org/bot' + token + '/sendMessage',
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify({
+          chat_id: chat,
+          text: text,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true,
+          disable_notification: Boolean(quiet),
+        }),
+        muteHttpExceptions: true,
+      }))
+    );
+    res.forEach((r, i) => {
+      if (r.getResponseCode() !== 200) {
+        ok = false;
+        console.error('Telegram ' + r.getResponseCode() + ' (chat ' + chats[i] + '): ' + r.getContentText());
+      }
+    });
+  } catch (err) {
+    console.error('Telegram failed: ' + String(err).split(token).join('***'));
+    return false;
+  }
+  return ok;
+}
+
+const tgEsc_ = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// A booking from the calendar event: when, then the details the event already holds
+// (name, phone, email, amount, extras, notes, reference, and the Stripe payment once paid).
+function telegramBooking_(ev, heading, quiet) {
+  try {
+    const start = ev.getStartTime();
+    const end = ev.getEndTime();
+    const hours = Math.round((end.getTime() - start.getTime()) / 360000) / 10;
+    const day = MAIL.pl.days[Number(Utilities.formatDate(start, TZ, 'u')) - 1] || '';
+    const service = SERVICE_LABELS[ev.getTag('sanctumService')] || '';
+    const lang = (ev.getTag('sanctumLang') || 'pl').toUpperCase();
+    const lines = [
+      heading,
+      '',
+      '<b>' + tgEsc_(service) + '</b>',
+      '<b>' + day + ', ' + Utilities.formatDate(start, TZ, 'dd.MM.yyyy') + ', ' +
+        Utilities.formatDate(start, TZ, 'HH:mm') + '–' + Utilities.formatDate(end, TZ, 'HH:mm') + '</b> (' + hours + ' godz.)',
+      '',
+    ]
+      .concat(ev.getDescription().split('\n').filter(Boolean).map(tgEsc_))
+      .concat(['Język strony: ' + lang]);
+    telegram_(lines.join('\n'), quiet);
+  } catch (err) {
+    console.error('Telegram message failed: ' + err);
+  }
+}
+
+// Recording and mixing requests and contact form messages. The site emails these to the studio
+// itself and also sends them here, only so they reach Telegram too (nothing is booked).
+const REQUEST_LABELS = { recording: 'Nagrywanie', mixing: 'Miks i mastering' };
+
+function notify_(b) {
+  const contact = b.kind === 'contact';
+  const name = clip_(b.name, 100);
+  if ((!contact && !REQUEST_LABELS[b.service]) || !name || (!clip_(b.email, 255) && !clip_(b.phone, 50))) {
+    return { error: 'invalid_request' };
+  }
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return { error: 'busy' };
+  try {
+    if (tooMany_(b)) return { error: 'rate_limited' };
+    countBooking_(b);
+  } finally {
+    lock.releaseLock();
+  }
+  const topic = clip_(b.topic, 100);
+  const lines = [
+    contact
+      ? '✉️ <b>Nowa wiadomość z formularza kontaktowego</b>' + (topic ? ': ' + tgEsc_(topic) : '')
+      : '📝 <b>Nowe zapytanie: ' + REQUEST_LABELS[b.service] + '</b>',
+    '',
+    'Imię: ' + tgEsc_(name),
+    'Telefon: ' + tgEsc_(clip_(b.phone, 50) || '-'),
+    'E-mail: ' + tgEsc_(clip_(b.email, 255) || '-'),
+    (contact ? 'Wiadomość: ' : 'Opis: ') + tgEsc_(clip_(contact ? b.message : b.notes, 2500) || '-'),
+    'Język strony: ' + tgEsc_(clip_(b.language, 5).toUpperCase() || 'PL'),
+    '',
+    contact ? 'Odpowiedz klientowi telefonicznie lub mailem.' : 'Klient czeka na telefon lub maila, żeby ustalić termin.',
+  ];
+  telegram_(lines.join('\n'));
+  return { ok: true };
+}
+
+// Run once from the editor after adding TELEGRAM_BOT_TOKEN and writing anything to the bot (or in
+// the group with the bot): prints the chat ids the bot can see, to paste into TELEGRAM_CHAT_ID.
+function telegramChatIds() {
+  const token = String(PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || '').trim();
+  if (!token) return console.log('Add the TELEGRAM_BOT_TOKEN script property first.');
+  const res = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/getUpdates', { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) return console.log('Telegram ' + res.getResponseCode() + ': ' + res.getContentText());
+  const seen = {};
+  (JSON.parse(res.getContentText()).result || []).forEach((u) => {
+    const m = u.message || u.channel_post || u.my_chat_member || {};
+    if (m.chat) seen[m.chat.id] = m.chat.title || [m.chat.first_name, m.chat.last_name].filter(Boolean).join(' ') || m.chat.username || '';
+  });
+  const ids = Object.keys(seen);
+  if (!ids.length) return console.log('No chats yet. Send any message to the bot (or in the group), then run this again.');
+  ids.forEach((id) => console.log('TELEGRAM_CHAT_ID: ' + id + '   (' + seen[id] + ')'));
+}
+
+// Run once from the editor to check the bot: sends a test message to TELEGRAM_CHAT_ID.
+function telegramTest() {
+  const sent = telegram_('✅ Sanctum Sound: Telegram działa. Tu będą przychodzić rezerwacje i zapytania ze strony.');
+  console.log(sent ? 'Sent. Check Telegram.' : 'Not sent. Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID (and the Executions log).');
 }
 
 // ---------------------------------------------------------------- setup and helpers

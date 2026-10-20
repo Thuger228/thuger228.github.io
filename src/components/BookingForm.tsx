@@ -28,7 +28,7 @@ import {
   STRIPE_LOCALES,
   STUDIO_TIME_ZONE,
 } from '@/data/booking';
-import { TakenSlot, confirmPayment, fetchTakenSlots, holdSlot, releaseHold } from '@/lib/bookingApi';
+import { TakenSlot, confirmPayment, fetchTakenSlots, holdSlot, notifyStudio, releaseHold } from '@/lib/bookingApi';
 
 // Remembers the visitor's language across the Stripe round trip. The backend now returns each visitor
 // to their own language's page; this still covers a return to the Polish /booking/?paid=1.
@@ -429,6 +429,19 @@ const BookingForm = () => {
       toast({ title: c.error_send, variant: 'destructive' });
       stopLoading();
       return;
+    }
+
+    // Rehearsals reach Telegram from the booking script; requests need their own message.
+    if (!slotDay) {
+      notifyStudio({
+        kind: 'request',
+        service: serviceId,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        notes: parsed.data.notes,
+        language,
+      });
     }
 
     if (!checkoutUrl) {

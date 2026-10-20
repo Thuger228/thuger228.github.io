@@ -8,6 +8,7 @@ import PhoneInput, { isValidPhone } from '@/components/PhoneInput';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
+import { notifyStudio } from '@/lib/bookingApi';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, Send } from 'lucide-react';
 import { z } from 'zod';
@@ -67,6 +68,17 @@ const ContactForm = () => {
         }),
       });
       if (!res.ok) throw new Error('Failed');
+      if (!honey) {
+        notifyStudio({
+          kind: 'contact',
+          topic: topic ? contactCopy.pl.topics[topic] : '',
+          name: parsed.data.name,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          message: parsed.data.message,
+          language,
+        });
+      }
       setSent(true);
       setForm(EMPTY);
       setTopic(null);

@@ -92,6 +92,25 @@ export const releaseHold = async (reference: string) => {
   }
 };
 
+// Recording and mixing requests and contact form messages: the site emails them itself, and also
+// sends a copy here so the studio gets them on Telegram too. Fire and forget: never holds up the form.
+export const notifyStudio = (args: {
+  kind: 'request' | 'contact';
+  service?: BookingServiceId;
+  topic?: string;
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string;
+  message?: string;
+  language: string;
+}) => {
+  if (!BOOKING_API_URL) return;
+  post({ action: 'notify', ...args }).catch(() => {
+    // the email already reached the studio
+  });
+};
+
 // After Stripe: the backend checks the Checkout Session with Stripe and marks the booking paid.
 // Best effort: the backend also checks Stripe every few minutes on its own.
 export const confirmPayment = async (sessionId: string) => {
