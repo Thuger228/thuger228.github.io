@@ -62,8 +62,8 @@ export interface BookingCopy {
 const bookingCopy: Record<Language, BookingCopy> = {
   pl: {
     page: {
-      title: 'Rezerwacja online - studio nagrań i sala prób | Sanctum',
-      desc: 'Zarezerwuj nagranie (od 120 zł/h), salę prób (od 50 zł/h) albo miks i mastering (od 400 zł) w Sanctum Sound w Warszawie i zapłać online przez Stripe.',
+      title: 'Rezerwacja online - sala prób i studio nagrań Warszawa',
+      desc: 'Rezerwacja sali prób online w Warszawie: wolny termin w kalendarzu, płatność przez Stripe, od 50 zł/godz., codziennie 9-24. Nagranie i miks na zapytanie.',
       h1: 'Rezerwacja online',
       intro: 'Salę prób rezerwujesz od razu: wybierz czas trwania i dodatki, wskaż wolny termin w kalendarzu i zapłać online. Nagranie oraz miks i mastering to krótkie zapytanie: zostaw kontakt, a odpiszemy lub oddzwonimy, żeby ustalić szczegóły.',
       sections: [
@@ -71,14 +71,31 @@ const bookingCopy: Record<Language, BookingCopy> = {
           h2: 'Jak działa rezerwacja',
           body: ['Wolisz porozmawiać? Zadzwoń pod +48 881 238 684 albo napisz przez formularz kontaktowy.'],
           list: [
-            'Sala prób: wybierz czas trwania (1–4 godz.) i dodatki.',
+            'Sala prób: wybierz czas trwania (1-4 godz.) i dodatki.',
             'Wskaż wolny dzień i godzinę w kalendarzu.',
             'Podaj imię, e-mail i telefon, a potem zapłać online przez Stripe.',
             'Nagranie, miks i mastering: wyślij zapytanie, a odpiszemy lub oddzwonimy.',
           ],
         },
       ],
-      faq: [],
+      faq: [
+        {
+          q: 'Czy za każdą usługę płacę online?',
+          a: 'Nie. Online płacisz tylko za salę prób. Nagranie oraz miks i mastering to zapytanie bez płatności: odpiszemy lub oddzwonimy, żeby ustalić termin i szczegóły.',
+        },
+        {
+          q: 'W jakich godzinach można zarezerwować salę prób?',
+          a: 'Codziennie od 9:00 do 24:00. Próba trwa od 1 do 4 godzin i musi zaczynać się co najmniej 4 godziny od chwili rezerwacji.',
+        },
+        {
+          q: 'Ile kosztuje sala prób?',
+          a: 'Od 50 zł za godzinę dla samej perkusji lub wokalu i 60 zł za godzinę dla pełnego składu. Zestaw talerzy to +10 zł, a podwójna stopa +5 zł za całą próbę.',
+        },
+        {
+          q: 'Jak dostanę potwierdzenie rezerwacji?',
+          a: 'Zaraz po płatności przychodzi e-mail z potwierdzeniem i zaproszeniem do kalendarza.',
+        },
+      ],
     },
     form: {
       service: 'Usługa',
@@ -131,8 +148,8 @@ const bookingCopy: Record<Language, BookingCopy> = {
 
   en: {
     page: {
-      title: 'Book Online - Recording Studio Warsaw | Sanctum Sound',
-      desc: 'Book recording (from 120 PLN/h), the rehearsal room (from 50 PLN/h) or mixing and mastering (from 400 PLN) at Sanctum Sound in Warsaw and pay online with Stripe.',
+      title: 'Book Online - Rehearsal Room & Recording Studio Warsaw',
+      desc: 'Book the Sanctum Sound rehearsal room in Warsaw online: pick a free slot, pay with Stripe, from 50 PLN/h, open daily 9-24. Recording and mixing on request.',
       h1: 'Book online',
       intro: 'Book the rehearsal room straight away: choose how long and any extras, pick a free time in the calendar and pay online. For recording or mixing and mastering, send a short request and we’ll write or call you back to agree the details.',
       sections: [
@@ -140,14 +157,31 @@ const bookingCopy: Record<Language, BookingCopy> = {
           h2: 'How booking works',
           body: ['Prefer to talk first? Call +48 881 238 684 or send us a message through the contact form.'],
           list: [
-            'Rehearsal room: choose how long (1–4 h) and any extras.',
+            'Rehearsal room: choose how long (1-4 h) and any extras.',
             'Pick a free day and time in the calendar.',
             'Enter your name, email and phone number, then pay online with Stripe.',
             'Recording, mixing and mastering: send a request and we’ll write or call you back.',
           ],
         },
       ],
-      faq: [],
+      faq: [
+        {
+          q: 'Do I pay online for every service?',
+          a: 'No. Only the rehearsal room is paid online. Recording and mixing and mastering are requests with no payment: we’ll write or call you back to agree the date and details.',
+        },
+        {
+          q: 'When can I book the rehearsal room?',
+          a: 'Every day from 9:00 to 24:00. A session lasts 1 to 4 hours and has to start at least 4 hours after you book.',
+        },
+        {
+          q: 'How much is the rehearsal room?',
+          a: 'From 50 PLN per hour for drums or vocals only, and 60 PLN per hour for a full band. A cymbal set is +10 PLN and a double bass drum pedal +5 PLN per session.',
+        },
+        {
+          q: 'How do I get a confirmation?',
+          a: 'Right after payment you get an email with the confirmation and a calendar invite.',
+        },
+      ],
     },
     form: {
       service: 'Service',
@@ -201,7 +235,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   uk: {
     page: {
       title: 'Онлайн-бронювання - студія звукозапису Sanctum, Варшава',
-      desc: 'Забронюйте запис (від 120 zł/год), репетиційну залу (від 50 zł/год) або зведення і мастеринг (від 400 zł) у Sanctum Sound у Варшаві та оплатіть онлайн через Stripe.',
+      desc: 'Онлайн-бронювання репетиційної зали у Варшаві: вільний час у календарі, оплата через Stripe, від 50 zł/год, щодня 9-24. Запис і зведення за запитом.',
       h1: 'Онлайн-бронювання',
       intro: 'Репетиційну залу можна забронювати одразу: оберіть тривалість і додатки, виберіть вільний час у календарі та оплатіть онлайн. Для запису або зведення і мастерингу надішліть короткий запит, і ми напишемо або зателефонуємо, щоб узгодити деталі.',
       sections: [
@@ -209,14 +243,31 @@ const bookingCopy: Record<Language, BookingCopy> = {
           h2: 'Як працює бронювання',
           body: ['Хочете спершу поговорити? Телефонуйте +48 881 238 684 або напишіть через контактну форму.'],
           list: [
-            'Репетиційна зала: оберіть тривалість (1–4 год) і додатки.',
+            'Репетиційна зала: оберіть тривалість (1-4 год) і додатки.',
             'Виберіть вільний день і час у календарі.',
             'Залиште ім’я, e-mail і телефон та оплатіть онлайн через Stripe.',
             'Запис, зведення і мастеринг: надішліть запит, і ми напишемо або зателефонуємо.',
           ],
         },
       ],
-      faq: [],
+      faq: [
+        {
+          q: 'Чи потрібно платити онлайн за кожну послугу?',
+          a: 'Ні. Онлайн оплачується лише репетиційна зала. Запис і зведення з мастерингом - це запит без оплати: ми напишемо або зателефонуємо, щоб узгодити дату й деталі.',
+        },
+        {
+          q: 'Коли можна забронювати репетиційну залу?',
+          a: 'Щодня з 9:00 до 24:00. Репетиція триває від 1 до 4 год і має починатися щонайменше через 4 години після бронювання.',
+        },
+        {
+          q: 'Скільки коштує репетиційна зала?',
+          a: 'Від 50 zł за годину лише для барабанів або вокалу і 60 zł за годину для повного складу. Комплект тарілок +10 zł, подвійна педаль +5 zł за всю репетицію.',
+        },
+        {
+          q: 'Як я отримаю підтвердження?',
+          a: 'Одразу після оплати ви отримаєте e-mail з підтвердженням і запрошенням у календар.',
+        },
+      ],
     },
     form: {
       service: 'Послуга',
@@ -270,7 +321,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   be: {
     page: {
       title: 'Анлайн-браніраванне - студыя гуказапісу Sanctum, Варшава',
-      desc: 'Забраніруйце запіс (ад 120 zł/гадз), рэпетыцыйную залу (ад 50 zł/гадз) або зводку і мастэрынг (ад 400 zł) у Sanctum Sound у Варшаве і аплаціце анлайн праз Stripe.',
+      desc: 'Анлайн-браніраванне рэпетыцыйнай залы ў Варшаве: вольны час у календары, аплата праз Stripe, ад 50 zł/гадз, штодня 9-24. Запіс і зводка па запыце.',
       h1: 'Анлайн-браніраванне',
       intro: 'Рэпетыцыйную залу можна забраніраваць адразу: выберыце працягласць і дадаткі, абярыце вольны час у календары і аплаціце анлайн. Для запісу або зводкі і мастэрынгу дашліце кароткі запыт, і мы напішам або патэлефануем, каб узгадніць дэталі.',
       sections: [
@@ -278,14 +329,31 @@ const bookingCopy: Record<Language, BookingCopy> = {
           h2: 'Як працуе браніраванне',
           body: ['Хочаце спачатку пагаварыць? Тэлефануйце +48 881 238 684 або напішыце праз кантактную форму.'],
           list: [
-            'Рэпетыцыйная зала: выберыце працягласць (1–4 гадз) і дадаткі.',
+            'Рэпетыцыйная зала: выберыце працягласць (1-4 гадз) і дадаткі.',
             'Абярыце вольны дзень і час у календары.',
             'Пакіньце імя, e-mail і тэлефон і аплаціце анлайн праз Stripe.',
             'Запіс, зводка і мастэрынг: дашліце запыт, і мы напішам або патэлефануем.',
           ],
         },
       ],
-      faq: [],
+      faq: [
+        {
+          q: 'Ці трэба плаціць анлайн за кожную паслугу?',
+          a: 'Не. Анлайн аплачваецца толькі рэпетыцыйная зала. Запіс і зводка з мастэрынгам - гэта запыт без аплаты: мы напішам або патэлефануем, каб узгадніць дату і дэталі.',
+        },
+        {
+          q: 'Калі можна забраніраваць рэпетыцыйную залу?',
+          a: 'Штодня з 9:00 да 24:00. Рэпетыцыя доўжыцца ад 1 да 4 гадз і павінна пачынацца не раней чым праз 4 гадзіны пасля браніравання.',
+        },
+        {
+          q: 'Колькі каштуе рэпетыцыйная зала?',
+          a: 'Ад 50 zł за гадзіну толькі для ўдарных або вакалу і 60 zł за гадзіну для поўнага складу. Камплект талерак +10 zł, падвойная педаль +5 zł за ўсю рэпетыцыю.',
+        },
+        {
+          q: 'Як я атрымаю пацвярджэнне?',
+          a: 'Адразу пасля аплаты вы атрымаеце e-mail з пацвярджэннем і запрашэннем у каляндар.',
+        },
+      ],
     },
     form: {
       service: 'Паслуга',
@@ -339,7 +407,7 @@ const bookingCopy: Record<Language, BookingCopy> = {
   ru: {
     page: {
       title: 'Онлайн-бронирование - студия звукозаписи Sanctum, Варшава',
-      desc: 'Забронируйте запись (от 120 zł/час), репетиционную комнату (от 50 zł/час) или сведение и мастеринг (от 400 zł) в Sanctum Sound в Варшаве и оплатите онлайн через Stripe.',
+      desc: 'Онлайн-бронирование репетиционной комнаты в Варшаве: свободное время, оплата через Stripe, от 50 zł/час, ежедневно 9-24. Запись и сведение по запросу.',
       h1: 'Онлайн-бронирование',
       intro: 'Репетиционную комнату можно забронировать сразу: выберите длительность и дополнения, укажите свободное время в календаре и оплатите онлайн. Для записи или сведения и мастеринга отправьте короткий запрос, и мы напишем или перезвоним, чтобы согласовать детали.',
       sections: [
@@ -347,14 +415,31 @@ const bookingCopy: Record<Language, BookingCopy> = {
           h2: 'Как работает бронирование',
           body: ['Хотите сначала поговорить? Звоните +48 881 238 684 или напишите через контактную форму.'],
           list: [
-            'Репетиционная комната: выберите длительность (1–4 ч) и дополнения.',
+            'Репетиционная комната: выберите длительность (1-4 ч) и дополнения.',
             'Выберите свободный день и время в календаре.',
             'Оставьте имя, e-mail и телефон и оплатите онлайн через Stripe.',
             'Запись, сведение и мастеринг: отправьте запрос, и мы напишем или перезвоним.',
           ],
         },
       ],
-      faq: [],
+      faq: [
+        {
+          q: 'Нужно ли платить онлайн за каждую услугу?',
+          a: 'Нет. Онлайн оплачивается только репетиционная комната. Запись и сведение с мастерингом - это запрос без оплаты: мы напишем или перезвоним, чтобы согласовать дату и детали.',
+        },
+        {
+          q: 'Когда можно забронировать репетиционную комнату?',
+          a: 'Ежедневно с 9:00 до 24:00. Репетиция длится от 1 до 4 ч и должна начинаться не раньше чем через 4 часа после бронирования.',
+        },
+        {
+          q: 'Сколько стоит репетиционная комната?',
+          a: 'От 50 zł в час только для барабанов или вокала и 60 zł в час для полного состава. Комплект тарелок +10 zł, двойная педаль +5 zł за всю репетицию.',
+        },
+        {
+          q: 'Как я получу подтверждение?',
+          a: 'Сразу после оплаты придёт e-mail с подтверждением и приглашением в календарь.',
+        },
+      ],
     },
     form: {
       service: 'Услуга',

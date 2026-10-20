@@ -45,13 +45,13 @@
             "@type": "LocalBusiness",
             "@id": "https://sanctum-sa.com/#localbusiness",
             "name": "Sanctum Sound",
-            "description": "Studio nagrań i sala prób w Warszawie: nagrywanie wokalu i instrumentów, miks i mastering, produkcja muzyczna oraz wynajem sprzętu.",
+            "description": "Studio nagrań i sala prób w Warszawie: nagrywanie wokalu i instrumentów, miks i mastering, produkcja muzyczna, wynajem sprzętu, rezerwacja sali prób online i vouchery prezentowe.",
             "url": "https://sanctum-sa.com/",
             "telephone": "+48 881 238 684",
             "email": "support@sanctum-sa.com",
             "image": "https://sanctum-sa.com/og-image.jpg",
             "logo": "https://sanctum-sa.com/icon-512.png",
-            "priceRange": "50–400 zł",
+            "priceRange": "50-400 zł",
             "currenciesAccepted": "PLN",
             "address": {
               "@type": "PostalAddress",
@@ -83,6 +83,25 @@
               "url": "https://sanctum-sa.com/contact/"
             },
             "areaServed": { "@type": "City", "name": "Warszawa" },
+            "potentialAction": {
+              "@type": "ReserveAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://sanctum-sa.com/booking/",
+                "actionPlatform": ["https://schema.org/DesktopWebPlatform", "https://schema.org/MobileWebPlatform"]
+              },
+              "result": { "@type": "Reservation", "name": "Rezerwacja sali prób" }
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Usługi Sanctum Sound",
+              "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Nagranie w studiu", "url": "https://sanctum-sa.com/recording/" }, "priceSpecification": { "@type": "UnitPriceSpecification", "price": 120, "priceCurrency": "PLN", "unitCode": "HUR" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Sala prób", "url": "https://sanctum-sa.com/rehearsals/" }, "priceSpecification": { "@type": "UnitPriceSpecification", "minPrice": 50, "price": 50, "priceCurrency": "PLN", "unitCode": "HUR" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Miks i mastering", "url": "https://sanctum-sa.com/price/" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": 400, "price": 400, "priceCurrency": "PLN" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Voucher prezentowy do studia", "url": "https://sanctum-sa.com/voucher/" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": 100, "priceCurrency": "PLN" } }
+              ]
+            },
             "parentOrganization": { "@id": "https://sanctum-sa.com/#organization" },
             "sameAs": [
               "https://share.google/E1KUsi1ynfDJUxQ7o",

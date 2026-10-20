@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const FAQ_IDS = [1, 2, 3, 4, 5];
+const FAQ_IDS = [1, 2, 3, 4, 5, 6, 7];
 
 export const useFaqItems = () => {
   const { t } = useLanguage();

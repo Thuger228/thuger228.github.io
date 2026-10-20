@@ -74,7 +74,7 @@ const copy: SiteCopy = {
 
   rehearsals: {
     title: 'Rehearsal Studio Warsaw - Hourly from 50 PLN | Sanctum',
-    desc: 'Rehearsal studio in Warsaw (Praga-Południe) with full backline, drum kit, 800 W PA and air conditioning. Hourly hire from 50 PLN or regular weekly slots.',
+    desc: 'Rehearsal studio in Warsaw (Praga-Południe) with full backline, drum kit, 800 W PA and air conditioning. From 50 PLN/h, book and pay online, open daily 9-24.',
     h1: 'Rehearsal studio in Warsaw (Praga)',
     intro: 'Sanctum Sound runs an acoustically treated rehearsal studio in Warsaw’s Praga-Południe district, ready for bands, duos and solo musicians. Turn up with your instruments and play: the backline, drum kit and PA are already in the room, and cables are included free. Room rental starts at 50 PLN per hour.',
     sections: [
@@ -106,7 +106,7 @@ const copy: SiteCopy = {
       {
         h2: 'Price and booking',
         body: [
-          'Rehearsal room hire starts at 50 PLN per hour, with the backline, PA and cables included. To book, use the contact form on this site, call +48 881 238 684 or message @sanctum_sound_studio on Instagram, and tell us which day suits you and whether you’re after a one-off session or a regular slot.',
+          'Rehearsal room hire starts at 50 PLN per hour, with the backline, PA and cables included. Book online: pick a free time in the calendar on the booking page and pay with Stripe. We’re open every day from 9:00 to 24:00. For a regular weekly slot, call +48 881 238 684 or message @sanctum_sound_studio on Instagram.',
         ],
       },
       {
@@ -132,6 +132,10 @@ const copy: SiteCopy = {
       {
         q: 'Do I need to bring my own cables or amps?',
         a: 'No. The backline, drum kit, PA and cables are already in the room. Just bring your instruments.',
+      },
+      {
+        q: 'Can I book the rehearsal room online?',
+        a: 'Yes. On the booking page you choose 1-4 hours and any extras, pick a free time in the calendar and pay online with Stripe. We’re open every day from 9:00 to 24:00, and a session has to start at least 4 hours after you book.',
       },
     ],
   },
@@ -303,7 +307,7 @@ const copy: SiteCopy = {
 
   voucher: {
     title: 'Recording Studio Gift Voucher Warsaw | Sanctum Sound',
-    desc: 'Recording studio gift voucher in Warsaw - a present for a singer, rapper or musician: studio time with a sound engineer, mixing and mastering. Praga-Południe.',
+    desc: 'Recording studio gift voucher in Warsaw: studio time from 240 zł, rehearsal packs or any amount. Buy online, PDF by email, valid 3 months.',
     h1: 'Recording studio gift voucher in Warsaw',
     intro: 'Looking for a present that someone will actually remember? A recording studio gift voucher in Warsaw from Sanctum Sound lets a singer, rapper or musician step into a real studio, work with a sound engineer and walk away with their own finished song.',
     sections: [
@@ -362,6 +366,18 @@ const copy: SiteCopy = {
       {
         q: 'How will I receive the voucher?',
         a: 'As a PDF sent by email right after payment, easy to print or forward.',
+      },
+      {
+        q: 'Can I buy a rehearsal room voucher?',
+        a: 'Yes. The rehearsal pack is 10 hours in the rehearsal room for 550 zł, a good gift for a band or a drummer.',
+      },
+      {
+        q: 'Does the voucher show the price?',
+        a: 'Only if you want it to. Tick “Hide the price on the voucher” when you buy and the PDF won’t show the amount.',
+      },
+      {
+        q: 'How is the voucher redeemed?',
+        a: 'Get in touch any way you like: by phone, email, Instagram or the form on this site, and give us the code on the voucher. We’ll agree the session date together.',
       },
     ],
   },

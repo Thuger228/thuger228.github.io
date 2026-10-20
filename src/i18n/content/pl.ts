@@ -3,7 +3,7 @@ import type { SiteCopy } from './types';
 const copy: SiteCopy = {
   home: {
     title: 'Studio nagrań Warszawa - Sanctum Sound | Praga-Południe',
-    desc: 'Studio nagrań w Warszawie na Pradze-Południe: nagranie piosenki od 120 zł/h, miks i mastering od 400 zł, sala prób od 50 zł/h. Rap, hip-hop, wokal, zespoły.',
+    desc: 'Studio nagrań w Warszawie na Pradze-Południe: nagranie piosenki od 120 zł/godz., miks i mastering od 400 zł, sala prób od 50 zł/godz. Rap, wokal, zespoły.',
     aboutH2: 'Studio nagraniowe i sala prób na Pradze-Południe',
     about: [
       'Sanctum Sound to studio nagrań w Warszawie przy Alei Stanów Zjednoczonych 67. Nagrywamy wokal, instrumenty i całe zespoły, robimy miks, mastering i produkcję, a obok reżyserki działa sala prób z pełnym backline’em.',
@@ -13,7 +13,7 @@ const copy: SiteCopy = {
   },
 
   recording: {
-    title: 'Nagranie piosenki w studio Warszawa - od 120 zł/h',
+    title: 'Nagranie piosenki w studio Warszawa - od 120 zł/godz.',
     desc: 'Nagranie piosenki w studio w Warszawie: wokal, rap, instrumenty i zespoły. Miks i mastering od 400 zł za utwór. Realizator na każdej sesji. Praga-Południe.',
     h1: 'Nagranie piosenki w studio w Warszawie',
     intro:
@@ -47,7 +47,7 @@ const copy: SiteCopy = {
       {
         h2: 'Ile kosztuje nagranie piosenki?',
         body: [
-          'Nagranie piosenki w studio kosztuje od 120 zł za godzinę z realizatorem. Prosty wokal na gotowy bit zwykle zajmuje 1–2 godziny, a nagranie zespołu więcej. Do tego dochodzi miks i mastering od 400 zł za utwór. Dokładną wycenę podamy po krótkiej rozmowie o Twoim projekcie.',
+          'Nagranie piosenki w studio kosztuje od 120 zł za godzinę z realizatorem. Prosty wokal na gotowy bit zwykle zajmuje 1-2 godziny, a nagranie zespołu więcej. Do tego dochodzi miks i mastering od 400 zł za utwór. Dokładną wycenę podamy po krótkiej rozmowie o Twoim projekcie.',
         ],
       },
     ],
@@ -72,8 +72,8 @@ const copy: SiteCopy = {
   },
 
   rehearsals: {
-    title: 'Sala prób Warszawa Praga - od 50 zł/h | Sanctum Sound',
-    desc: 'Sala prób w Warszawie na Pradze-Południe: pełen backline, perkusja, nagłośnienie 800 W, klimatyzacja. Wynajem na godziny od 50 zł lub stałe terminy.',
+    title: 'Sala prób Warszawa Praga - od 50 zł/godz. | Sanctum Sound',
+    desc: 'Sala prób w Warszawie na Pradze-Południe: pełen backline, perkusja, nagłośnienie 800 W, klimatyzacja. Od 50 zł/godz., rezerwacja i płatność online.',
     h1: 'Sala prób w Warszawie (Praga) - wynajem na godziny',
     intro:
       'Szukasz sali prób w Warszawie na Pradze? Nasza sala jest wyciszona akustycznie, ma pełen backline i nagłośnienie 800 W, a wynajem kosztuje od 50 zł za godzinę. Przychodzisz z instrumentem i grasz, resztę mamy na miejscu.',
@@ -100,7 +100,7 @@ const copy: SiteCopy = {
       {
         h2: 'Sala prób Warszawa - cennik i rezerwacja',
         body: [
-          'Wynajem sali prób kosztuje od 50 zł za godzinę. Rezerwujesz przez formularz na stronie, telefonicznie lub na Instagramie. Jeśli chcesz nagrać próbę albo demo, zrobimy to w studiu obok.',
+          'Wynajem sali prób kosztuje od 50 zł za godzinę. Rezerwujesz online: wybierasz wolny termin w kalendarzu na stronie rezerwacji i płacisz przez Stripe. Sala jest otwarta codziennie od 9:00 do 24:00, a stały termin ustalisz telefonicznie lub na Instagramie. Jeśli chcesz nagrać próbę albo demo, zrobimy to w studiu obok.',
         ],
       },
       {
@@ -126,6 +126,10 @@ const copy: SiteCopy = {
       {
         q: 'Czy mogę nagrać próbę?',
         a: 'Tak. Studio nagrań jest obok sali prób, więc próbę albo demo można nagrać z realizatorem. Nagrania kosztują od 120 zł za godzinę.',
+      },
+      {
+        q: 'Czy salę prób można zarezerwować online?',
+        a: 'Tak. Na stronie rezerwacji wybierasz czas (1-4 godz.), dodatki i wolny termin w kalendarzu, a potem płacisz online przez Stripe. Sala jest otwarta codziennie od 9:00 do 24:00, a próba musi zaczynać się co najmniej 4 godziny od chwili rezerwacji.',
       },
     ],
   },
@@ -195,7 +199,7 @@ const copy: SiteCopy = {
 
   price: {
     title: 'Cennik studia nagrań Warszawa - nagranie, sala prób, miks',
-    desc: 'Cennik Sanctum Sound w Warszawie: nagranie w studio od 120 zł/h, sala prób od 50 zł/h, miks i mastering od 400 zł za utwór. Sprawdź, co jest w cenie.',
+    desc: 'Cennik Sanctum Sound w Warszawie: nagranie w studio od 120 zł/godz., sala prób od 50 zł/godz., miks i mastering od 400 zł za utwór. Sprawdź, co jest w cenie.',
     h1: 'Cennik studia nagrań i sali prób w Warszawie',
     intro:
       'Studio nagrań: cena zależy od tego, ile czasu potrzebujesz i co ma się wydarzyć z nagraniem. Poniżej są nasze ceny wyjściowe: nagranie od 120 zł za godzinę, sala prób od 50 zł za godzinę oraz miks i mastering od 400 zł za utwór.',
@@ -209,7 +213,7 @@ const copy: SiteCopy = {
       {
         h2: 'Ile kosztuje nagranie piosenki w studio?',
         body: [
-          'Najczęściej nagranie wokalu do gotowego bitu zajmuje 1–2 godziny, czyli od 120 do 240 zł. Do tego dochodzi miks i mastering. Nagranie zespołu z perkusją trwa dłużej, dlatego wycenę ustalamy po rozmowie o materiale.',
+          'Najczęściej nagranie wokalu do gotowego bitu zajmuje 1-2 godziny, czyli od 120 do 240 zł. Do tego dochodzi miks i mastering. Nagranie zespołu z perkusją trwa dłużej, dlatego wycenę ustalamy po rozmowie o materiale.',
         ],
       },
       {
@@ -276,7 +280,7 @@ const copy: SiteCopy = {
 
   voucher: {
     title: 'Nagranie piosenki w studio na prezent - voucher Warszawa',
-    desc: 'Voucher na nagranie piosenki w studio w Warszawie - prezent dla muzyka, wokalisty lub rapera. Nagranie z realizatorem, miks i mastering w cenie. Praga-Południe.',
+    desc: 'Voucher do studia nagrań w Warszawie na prezent: nagranie piosenki od 240 zł, pakiet prób 550 zł lub dowolna kwota. Kup online, PDF od razu, ważny 3 miesiące.',
     h1: 'Voucher na nagranie piosenki w studio - prezent w Warszawie',
     intro:
       'Nagranie piosenki w studio na prezent w Warszawie to coś, co zostaje na lata. Osoba obdarowana przychodzi do Sanctum Sound na Pradze-Południe, nagrywa swój utwór z realizatorem, a potem dostaje gotowy, zmiksowany i zmasterowany plik.',
@@ -308,7 +312,7 @@ const copy: SiteCopy = {
       {
         h2: 'Jak działa voucher na nagranie piosenki',
         body: [
-          'Po płatności voucher w PDF przychodzi od razu na Twój e-mail, z kodem, wybranym pakietem i datą ważności. Możesz go wydrukować albo przesłać dalej. Voucher jest ważny 3 miesiące od zakupu. Obdarowany sam wybiera termin sesji, kontaktując się z nami telefonicznie lub przez Instagram.',
+          'Po płatności voucher w PDF przychodzi od razu na Twój e-mail, z kodem, wybranym pakietem i datą ważności. Możesz go wydrukować albo przesłać dalej. Voucher jest ważny 3 miesiące od zakupu. Obdarowany sam wybiera termin sesji: wystarczy, że skontaktuje się z nami telefonicznie, mailem, na Instagramie albo przez formularz na stronie.',
           'Dla porównania: nagranie piosenki w studio kosztuje u nas od 120 zł za godzinę, a miks i mastering od 400 zł za utwór.',
         ],
       },
@@ -329,6 +333,18 @@ const copy: SiteCopy = {
       {
         q: 'Czy można nagrać piosenkę w duecie?',
         a: 'Tak. Nagranie duetu to dobry pomysł na wspólny prezent. Szczegóły sesji ustalimy przy rezerwacji terminu.',
+      },
+      {
+        q: 'Czy można kupić voucher na salę prób?',
+        a: 'Tak. Pakiet prób to 10 godzin na sali prób za 550 zł. To dobry prezent dla zespołu albo perkusisty.',
+      },
+      {
+        q: 'Czy na voucherze widać cenę?',
+        a: 'Nie musi. Przy zakupie zaznacz „Ukryj cenę na voucherze”, a PDF nie pokaże kwoty.',
+      },
+      {
+        q: 'Jak wykorzystać voucher?',
+        a: 'Skontaktuj się z nami w dowolny sposób: telefonicznie, mailem, na Instagramie albo przez formularz na stronie, i podaj kod z vouchera. Razem ustalimy termin sesji.',
       },
     ],
   },

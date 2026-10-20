@@ -3,10 +3,10 @@ import SEO from '@/components/SEO';
 import BookingCTA from '@/components/BookingCTA';
 import VoucherShop from '@/components/VoucherShop';
 import PageContent, { PageHeader, pageFaqJsonLd } from '@/components/PageContent';
-import { pageUrl } from '@/i18n/config';
+import { SITE_URL, pageUrl } from '@/i18n/config';
 import { useCopy } from '@/i18n/content';
 import { useVoucherShopCopy } from '@/i18n/content/voucherShop';
-import { VOUCHER_TIERS } from '@/data/vouchers';
+import { GIFT_MAX, GIFT_MIN, VOUCHER_TIERS } from '@/data/vouchers';
 
 // Voucher page: SEO copy plus the "buy a voucher" panel (packages paid online, prices set 2026-10-20).
 const Voucher = () => {
@@ -29,13 +29,37 @@ const Voucher = () => {
             provider: { '@id': 'https://sanctum-sa.com/#localbusiness' },
             areaServed: { '@type': 'City', name: 'Warszawa' },
             url: pageUrl(language, 'voucher'),
-            offers: VOUCHER_TIERS.filter((t) => t.price !== null).map((t) => ({
-              '@type': 'Offer',
-              name: `${shop.tiers[t.id].name}: ${shop.tiers[t.id].items}`,
-              price: String(t.price),
-              priceCurrency: 'PLN',
-              availability: 'https://schema.org/InStock',
+          },
+          // Each voucher as a Product with its own Offer, so search engines can show the price.
+          {
+            '@context': 'https://schema.org',
+            '@graph': VOUCHER_TIERS.map((t) => ({
+              '@type': 'Product',
+              '@id': `${pageUrl(language, 'voucher')}#${t.id}`,
+              name: `Voucher ${shop.tiers[t.id].name} - Sanctum Sound`,
+              description: shop.tiers[t.id].items,
+              image: `${SITE_URL}/og-image.jpg`,
+              brand: { '@type': 'Brand', name: 'Sanctum Sound' },
+              category: 'Gift card',
               url: pageUrl(language, 'voucher'),
+              offers: {
+                '@type': 'Offer',
+                priceCurrency: 'PLN',
+                ...(t.price !== null
+                  ? { price: String(t.price) }
+                  : {
+                      price: String(GIFT_MIN),
+                      priceSpecification: {
+                        '@type': 'PriceSpecification',
+                        priceCurrency: 'PLN',
+                        minPrice: GIFT_MIN,
+                        maxPrice: GIFT_MAX,
+                      },
+                    }),
+                availability: 'https://schema.org/InStock',
+                url: pageUrl(language, 'voucher'),
+                seller: { '@id': 'https://sanctum-sa.com/#localbusiness' },
+              },
             })),
           },
           pageFaqJsonLd(page.faq),
