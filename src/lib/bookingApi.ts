@@ -2,6 +2,7 @@
 // (google-apps-script/Code.gs). The studio's Google Calendar is the booking database.
 
 import { BOOKING_API_URL, BookingServiceId } from '@/data/booking';
+import type { VoucherTierId } from '@/data/vouchers';
 
 export interface TakenSlot {
   booking_date: string; // YYYY-MM-DD
@@ -118,5 +119,40 @@ export const confirmPayment = async (sessionId: string) => {
     await post({ action: 'confirm', session_id: sessionId });
   } catch {
     // the 5-minute sync picks it up
+  }
+};
+
+// Gift vouchers (/voucher/): the backend works out the price from its own copy of the tiers, saves the
+// voucher as unpaid and returns the Stripe Checkout URL. Once paid it emails the voucher PDF to the buyer.
+// The return from Stripe goes through confirmPayment like a booking.
+export const buyVoucher = async (args: {
+  tier: VoucherTierId;
+  amount: number; // only used for the gift card (any amount)
+  name: string;
+  email: string;
+  phone: string;
+  recipient: string;
+  message: string;
+  hidePrice: boolean; // leave the amount off the PDF voucher (it's a gift)
+  locale?: string;
+  returnPath: string;
+}): Promise<string | null> => {
+  try {
+    const res = await post({
+      action: 'voucher',
+      tier: args.tier,
+      amount: args.amount,
+      name: args.name,
+      email: args.email,
+      phone: args.phone,
+      recipient: args.recipient,
+      message: args.message,
+      hide_price: args.hidePrice,
+      locale: args.locale,
+      return_path: args.returnPath,
+    });
+    return res.ok && typeof res.checkout_url === 'string' ? res.checkout_url : null;
+  } catch {
+    return null;
   }
 };

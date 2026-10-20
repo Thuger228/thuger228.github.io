@@ -3,8 +3,9 @@ import { Check, Loader2, Lock } from 'lucide-react';
 import { useFormsCopy } from '@/i18n/content/forms';
 
 // Full-screen "taking you to payment" screen, shown from the moment the visitor presses
-// "Continue to payment" until the browser opens Stripe. `phase` is the step that's running now.
-const PaymentLoader = ({ phase, total }: { phase: 0 | 1 | 2; total: number }) => {
+// "Continue to payment" until the browser opens Stripe. `phase` is the step that's running now;
+// `steps` replaces the booking steps (the voucher shop has its own).
+const PaymentLoader = ({ phase, total, steps }: { phase: 0 | 1 | 2; total: number; steps?: [string, string, string] }) => {
   const f = useFormsCopy();
 
   // Keep the page behind it from scrolling while it's up.
@@ -34,7 +35,7 @@ const PaymentLoader = ({ phase, total }: { phase: 0 | 1 | 2; total: number }) =>
         </h2>
         <p className="text-2xl font-bold mb-6">{total} zł</p>
         <ol className="space-y-3 text-left" aria-live="polite">
-          {f.pay_steps.map((label, i) => {
+          {(steps ?? f.pay_steps).map((label, i) => {
             const state = i < phase ? 'done' : i === phase ? 'active' : 'waiting';
             return (
               <li key={i} className="flex items-center gap-3 text-sm">

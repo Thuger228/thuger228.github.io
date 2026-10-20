@@ -1,15 +1,18 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEO from '@/components/SEO';
 import BookingCTA from '@/components/BookingCTA';
+import VoucherShop from '@/components/VoucherShop';
 import PageContent, { PageHeader, pageFaqJsonLd } from '@/components/PageContent';
 import { pageUrl } from '@/i18n/config';
 import { useCopy } from '@/i18n/content';
+import { useVoucherShopCopy } from '@/i18n/content/voucherShop';
+import { VOUCHER_TIERS } from '@/data/vouchers';
 
-// New page from the Oct 2026 keyword brief. Prices aren't set yet ("price on request"),
-// so the Service schema has no offers; add an Offer with price and priceCurrency 'PLN' once they are.
+// Voucher page: SEO copy plus the "buy a voucher" panel (packages paid online, prices set 2026-10-20).
 const Voucher = () => {
   const { language } = useLanguage();
   const page = useCopy().voucher;
+  const shop = useVoucherShopCopy();
 
   return (
     <div className="min-h-screen pt-16 md:pt-20">
@@ -26,6 +29,14 @@ const Voucher = () => {
             provider: { '@id': 'https://sanctum-sa.com/#localbusiness' },
             areaServed: { '@type': 'City', name: 'Warszawa' },
             url: pageUrl(language, 'voucher'),
+            offers: VOUCHER_TIERS.filter((t) => t.price !== null).map((t) => ({
+              '@type': 'Offer',
+              name: `${shop.tiers[t.id].name}: ${shop.tiers[t.id].items}`,
+              price: String(t.price),
+              priceCurrency: 'PLN',
+              availability: 'https://schema.org/InStock',
+              url: pageUrl(language, 'voucher'),
+            })),
           },
           pageFaqJsonLd(page.faq),
         ]}
@@ -35,6 +46,7 @@ const Voucher = () => {
           <PageHeader page={page} />
         </div>
       </section>
+      <VoucherShop />
       <PageContent page={page} />
       <BookingCTA />
     </div>

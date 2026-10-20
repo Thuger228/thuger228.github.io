@@ -316,12 +316,15 @@ const copy: SiteCopy = {
       {
         h2: 'Voucher packages',
         body: [
-          'Choose the package that fits the person and the occasion:',
+          'Choose the package that fits the person and the occasion. You can buy any of them online on this page, and the PDF arrives by email right after payment:',
         ],
         list: [
-          'One song - 2 hours of recording with a sound engineer, plus mixing and mastering of one song',
-          'Song + production - help with the arrangement and production, recording, then mixing and mastering',
-          'Rehearsal or studio time - a voucher for the number of hours you choose',
+          'Start - 2 h of recording with a sound engineer, 240 zł',
+          'One song - 2 h of recording, plus mixing and mastering of one song, 599 zł',
+          'Band single - 5 h of recording, plus mixing and mastering of one song, 990 zł',
+          'Day in the studio - 8 h of recording, plus mixing and mastering of two songs, 1690 zł',
+          'Rehearsal pack - 10 h in the rehearsal room, 550 zł',
+          'Gift card - any amount from 100 zł, for any studio service',
         ],
       },
       {
@@ -333,24 +336,24 @@ const copy: SiteCopy = {
       {
         h2: 'Delivery and validity',
         body: [
-          'We send the voucher as a PDF by email, or you can have it printed to hand over in person. The validity period is agreed when you buy it, so you can match it to the occasion.',
+          'The voucher arrives as a PDF by email right after payment, with its code, the package and the expiry date, ready to print or forward. It is valid for 3 months from purchase.',
         ],
       },
       {
         h2: 'Price and how to order',
         body: [
-          'Voucher prices are available on request. To order a recording studio gift voucher in Warsaw, use the contact form on this site, call +48 881 238 684 or message @sanctum_sound_studio on Instagram, and tell us which package you’d like.',
+          'Vouchers cost from 240 zł (2 hours of recording) to 1690 zł (a full day with two mixed songs), or any amount from 100 zł as a gift card. Buy one online on this page, or call +48 881 238 684 or message @sanctum_sound_studio on Instagram if you have questions.',
         ],
       },
     ],
     faq: [
       {
         q: 'How much does a studio gift voucher cost?',
-        a: 'Prices are available on request. Contact us with the package you have in mind and we’ll send you the details.',
+        a: 'From 240 zł for 2 hours of recording. A one song voucher with mixing and mastering is 599 zł, and a gift card can be any amount from 100 zł.',
       },
       {
         q: 'How long is the voucher valid?',
-        a: 'The validity period is agreed at the time of purchase.',
+        a: '3 months from the day you buy it. The expiry date is printed on the voucher.',
       },
       {
         q: 'Does the recipient need any recording experience?',
@@ -358,7 +361,7 @@ const copy: SiteCopy = {
       },
       {
         q: 'How will I receive the voucher?',
-        a: 'As a PDF sent by email, or printed if you’d like to hand it over in person.',
+        a: 'As a PDF sent by email right after payment, easy to print or forward.',
       },
     ],
   },

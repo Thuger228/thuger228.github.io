@@ -7,6 +7,8 @@
  *   - rehearsal room bookings get a Stripe Checkout for the exact amount, created here,
  *   - Stripe payments are confirmed by asking Stripe directly, then the event is marked paid and the
  *     customer gets a confirmation email with a calendar invite (in the language they booked in).
+ *   - gift vouchers from /voucher/ are paid the same way; they're listed in a Google Sheet in this
+ *     account ("Sanctum Sound - vouchery") and the buyer gets the voucher as a PDF by email.
  * Anything you put in the calendar yourself (a session booked by phone, a day off) blocks those times.
  *
  * Script properties (Project Settings → Script properties):
@@ -15,6 +17,7 @@
  *   TELEGRAM_BOT_TOKEN optional; a Telegram bot (from @BotFather) that posts every booking, payment
  *                      and request to the studio's chat. See TELEGRAM-SETUP.md.
  *   TELEGRAM_CHAT_ID   the chat it posts to (several chats: separate them with commas).
+ *   VOUCHER_SHEET_ID   set by the script itself when it makes the voucher list (setup() or the first sale).
  *
  * Setup: paste this file, set the properties, run setup() once, then Deploy → New deployment →
  * Web app (Execute as: Me, Who has access: Anyone). See STRIPE-SETUP.md for the full steps.
@@ -65,6 +68,7 @@ function doPost(e) {
   if (body.action === 'confirm') return json_(confirm_(body.session_id));
   if (body.action === 'cancel') return json_(cancel_(body.reference));
   if (body.action === 'notify') return json_(notify_(body));
+  if (body.action === 'voucher') return json_(voucher_(body));
   return json_({ error: 'unknown_action' });
 }
 
@@ -273,8 +277,13 @@ function syncStripe() {
   const since = Math.floor(Date.now() / 1000) - KEEP_UNPAID_HOURS * 3600;
   const list = stripe_('checkout/sessions?limit=100&status=complete&created[gte]=' + since);
   ((list && list.data) || []).forEach((s) => {
-    if (s.payment_status === 'paid' && /^SS-/.test(s.client_reference_id || '')) markPaid_(s.client_reference_id, s);
+    if (s.payment_status === 'paid' && /^S[SV]-/.test(s.client_reference_id || '')) markPaid_(s.client_reference_id, s);
   });
+  try {
+    expireVouchers_();
+  } catch (err) {
+    console.error('Voucher list check failed: ' + err);
+  }
 
   const now = new Date();
   calendar_()
@@ -294,6 +303,7 @@ function syncStripe() {
 }
 
 function markPaid_(reference, session) {
+  if (/^SV-/.test(reference)) return voucherPaid_(reference, session); // a gift voucher
   const m = /^SS-(recording|rehearsal)-(\d{4})(\d{2})(\d{2})-/.exec(reference);
   if (!m) return; // mixing bookings have no calendar slot
   // The page's confirm and the 5-minute sync can arrive together: only one may mark it paid and email.
@@ -544,6 +554,429 @@ function sendConfirmation_(ev, session) {
   }
 }
 
+// ---------------------------------------------------------------- gift vouchers
+
+// Gift vouchers sold on /voucher/. These are the prices charged: keep them in line with
+// src/data/vouchers.ts (the prices the site shows). price null = gift card, the buyer picks the amount.
+// Labels are Polish, for the voucher list and Telegram; the customer's language is in VOUCHER_MAIL.
+const VOUCHERS = {
+  start: { price: 240, label: 'Start', items: '2 godz. nagrania z realizatorem' },
+  song: { price: 599, label: 'Jedna piosenka', items: '2 godz. nagrania, miks i mastering 1 utworu' },
+  single: { price: 990, label: 'Singiel zespołu', items: '5 godz. nagrania, miks i mastering 1 utworu' },
+  day: { price: 1690, label: 'Dzień w studiu', items: '8 godz. nagrania, miks i mastering 2 utworów' },
+  rehearsal: { price: 550, label: 'Pakiet prób', items: '10 godz. na sali prób' },
+  gift: { price: null, label: 'Karta podarunkowa', items: 'Dowolna kwota na usługi studia' },
+};
+const GIFT_MIN = 100;
+const GIFT_MAX = 5000;
+const VOUCHER_VALID_MONTHS = 3; // set by the studio on 2026-10-20
+
+// The voucher list is a Google Sheet in this account ("Sanctum Sound - vouchery"), made on the first
+// sale or by setup(). One row per voucher. Mark a used voucher by writing the date in the last column.
+const VOUCHER_COLUMNS = [
+  'Kod', 'Status', 'Pakiet', 'Kwota (zł)', 'Zawartość', 'Kupujący', 'E-mail', 'Telefon', 'Dla kogo',
+  'Dedykacja', 'Ukryta kwota', 'Język', 'Utworzono', 'Opłacono', 'Ważny do', 'Stripe', 'Wykorzystano (data, uwagi)',
+];
+const VC = {}; // column numbers by name, from 1
+VOUCHER_COLUMNS.forEach((name, i) => (VC[name] = i + 1));
+const VOUCHER_STATUS = {
+  pending: '⏳ nieopłacony',
+  paid: '✅ opłacony',
+  expired: '⌛ wygasł (nieopłacony)',
+  failed: '⌛ błąd płatności Stripe',
+};
+
+// Email and PDF texts per site language. Tier names and contents match src/i18n/content/voucherShop.ts.
+const VOUCHER_MAIL = {
+  pl: {
+    subject: 'Twój voucher Sanctum Sound: {tier}',
+    hi: 'Cześć {name},',
+    intro: 'dziękujemy za zakup! Voucher jest w załączniku (PDF), gotowy do wydruku lub przesłania dalej.',
+    heading: 'Twój voucher', voucher: 'Voucher', package: 'Pakiet', value: 'Wartość', for: 'Dla', code: 'Kod vouchera',
+    valid: 'Ważny do', paid: 'Zapłacono',
+    how: 'Jak skorzystać: zadzwoń pod {phone} albo napisz na {email}, podaj kod i umów termin sesji.',
+    questions: 'Pytania? Zadzwoń pod {phone} albo odpowiedz na tego maila.',
+    tiers: {
+      start: ['Start', '2 godz. nagrania z realizatorem'],
+      song: ['Jedna piosenka', '2 godz. nagrania, miks i mastering 1 utworu'],
+      single: ['Singiel zespołu', '5 godz. nagrania, miks i mastering 1 utworu'],
+      day: ['Dzień w studiu', '8 godz. nagrania, miks i mastering 2 utworów'],
+      rehearsal: ['Pakiet prób', '10 godz. na sali prób'],
+      gift: ['Karta podarunkowa', 'Do wykorzystania na wszystkie usługi studia'],
+    },
+  },
+  en: {
+    subject: 'Your Sanctum Sound voucher: {tier}',
+    hi: 'Hi {name},',
+    intro: 'thank you for your purchase! The voucher is attached as a PDF, ready to print or forward.',
+    heading: 'Your voucher', voucher: 'Gift voucher', package: 'Package', value: 'Value', for: 'For', code: 'Voucher code',
+    valid: 'Valid until', paid: 'Paid',
+    how: 'How to use it: call {phone} or email {email}, give the code and book a session.',
+    questions: 'Questions? Call {phone} or reply to this email.',
+    tiers: {
+      start: ['Start', '2 h of recording with a sound engineer'],
+      song: ['One song', '2 h of recording, mixing and mastering of 1 song'],
+      single: ['Band single', '5 h of recording, mixing and mastering of 1 song'],
+      day: ['Day in the studio', '8 h of recording, mixing and mastering of 2 songs'],
+      rehearsal: ['Rehearsal pack', '10 h in the rehearsal room'],
+      gift: ['Gift card', 'For any studio service'],
+    },
+  },
+  uk: {
+    subject: 'Ваш сертифікат Sanctum Sound: {tier}',
+    hi: 'Вітаємо, {name}!',
+    intro: 'Дякуємо за покупку! Сертифікат у вкладенні (PDF), його можна роздрукувати або переслати.',
+    heading: 'Ваш сертифікат', voucher: 'Подарунковий сертифікат', package: 'Пакет', value: 'Вартість', for: 'Для', code: 'Код сертифіката',
+    valid: 'Дійсний до', paid: 'Сплачено',
+    how: 'Як скористатися: зателефонуйте {phone} або напишіть на {email}, назвіть код і домовтеся про дату сесії.',
+    questions: 'Питання? Телефонуйте {phone} або дайте відповідь на цей лист.',
+    tiers: {
+      start: ['Старт', '2 год запису зі звукорежисером'],
+      song: ['Одна пісня', '2 год запису, зведення і мастеринг 1 пісні'],
+      single: ['Сингл гурту', '5 год запису, зведення і мастеринг 1 пісні'],
+      day: ['День у студії', '8 год запису, зведення і мастеринг 2 пісень'],
+      rehearsal: ['Пакет репетицій', '10 год у репетиційній залі'],
+      gift: ['Подарункова картка', 'На всі послуги студії'],
+    },
+  },
+  be: {
+    subject: 'Ваш сертыфікат Sanctum Sound: {tier}',
+    hi: 'Вітаем, {name}!',
+    intro: 'Дзякуй за пакупку! Сертыфікат ва ўкладанні (PDF), яго можна раздрукаваць або пераслаць.',
+    heading: 'Ваш сертыфікат', voucher: 'Падарункавы сертыфікат', package: 'Пакет', value: 'Кошт', for: 'Для', code: 'Код сертыфіката',
+    valid: 'Дзейнічае да', paid: 'Аплачана',
+    how: 'Як скарыстацца: патэлефануйце {phone} або напішыце на {email}, назавіце код і дамоўцеся пра дату сесіі.',
+    questions: 'Пытанні? Тэлефануйце {phone} або адкажыце на гэты ліст.',
+    tiers: {
+      start: ['Старт', '2 гадз запісу з гукарэжысёрам'],
+      song: ['Адна песня', '2 гадз запісу, зводка і мастэрынг 1 песні'],
+      single: ['Сінгл гурта', '5 гадз запісу, зводка і мастэрынг 1 песні'],
+      day: ['Дзень у студыі', '8 гадз запісу, зводка і мастэрынг 2 песень'],
+      rehearsal: ['Пакет рэпетыцый', '10 гадз у рэпетыцыйнай зале'],
+      gift: ['Падарункавая картка', 'На ўсе паслугі студыі'],
+    },
+  },
+  ru: {
+    subject: 'Ваш сертификат Sanctum Sound: {tier}',
+    hi: 'Здравствуйте, {name}!',
+    intro: 'Спасибо за покупку! Сертификат во вложении (PDF), его можно распечатать или переслать.',
+    heading: 'Ваш сертификат', voucher: 'Подарочный сертификат', package: 'Пакет', value: 'Стоимость', for: 'Для', code: 'Код сертификата',
+    valid: 'Действует до', paid: 'Оплачено',
+    how: 'Как воспользоваться: позвоните {phone} или напишите на {email}, назовите код и договоритесь о дате сессии.',
+    questions: 'Вопросы? Звоните {phone} или ответьте на это письмо.',
+    tiers: {
+      start: ['Старт', '2 ч записи со звукорежиссёром'],
+      song: ['Одна песня', '2 ч записи, сведение и мастеринг 1 песни'],
+      single: ['Сингл группы', '5 ч записи, сведение и мастеринг 1 песни'],
+      day: ['День в студии', '8 ч записи, сведение и мастеринг 2 песен'],
+      rehearsal: ['Пакет репетиций', '10 ч в репетиционной комнате'],
+      gift: ['Подарочная карта', 'На все услуги студии'],
+    },
+  },
+};
+
+// A voucher from the site: saved as unpaid in the voucher list, then a Stripe Checkout for its price.
+// The price comes from VOUCHERS (the gift card amount is checked against GIFT_MIN and GIFT_MAX).
+function voucher_(b) {
+  const tier = VOUCHERS[b.tier] ? b.tier : null;
+  const amount = tier && VOUCHERS[tier].price !== null ? VOUCHERS[tier].price : Number(b.amount);
+  const name = clip_(b.name, 100);
+  const email = clip_(b.email, 255);
+  if (
+    !tier ||
+    !(Number.isInteger(amount) && amount >= GIFT_MIN && amount <= GIFT_MAX) ||
+    !name ||
+    !/^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(email) ||
+    !clip_(b.phone, 50)
+  ) {
+    return { error: 'invalid_voucher' };
+  }
+  const lang = (/^\/(en|uk|be|ru)\//.exec(b.return_path || '') || [null, 'pl'])[1];
+  const code = newVoucherCode_();
+  let sh, row;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    if (tooMany_(b)) return { error: 'rate_limited' };
+    sh = voucherSheet_(true);
+    sh.appendRow([
+      code, VOUCHER_STATUS.pending, VOUCHERS[tier].label, amount, VOUCHERS[tier].items, name, email,
+      clip_(b.phone, 50), clip_(b.recipient, 60), clip_(b.message, 200), b.hide_price ? 'tak' : '', lang, new Date(), '', '', '', '',
+    ]);
+    row = sh.getLastRow();
+    countBooking_(b);
+  } finally {
+    lock.releaseLock();
+  }
+
+  const t = VOUCHER_MAIL[lang];
+  const page = /^\/(?:(?:en|uk|be|ru)\/)?voucher\/$/.test(b.return_path || '') ? b.return_path : '/voucher/';
+  const session = stripePost_('checkout/sessions', {
+    mode: 'payment',
+    client_reference_id: code,
+    customer_email: email,
+    locale: ['pl', 'en', 'ru'].indexOf(b.locale) >= 0 ? b.locale : 'auto',
+    expires_at: String(Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60),
+    success_url: SITE + page + '?paid=1&session_id={CHECKOUT_SESSION_ID}',
+    cancel_url: SITE + page,
+    'line_items[0][quantity]': '1',
+    'line_items[0][price_data][currency]': 'pln',
+    'line_items[0][price_data][unit_amount]': String(amount * 100),
+    'line_items[0][price_data][product_data][name]': 'Sanctum Sound: ' + t.voucher + ' "' + t.tiers[tier][0] + '"',
+    'line_items[0][price_data][product_data][description]': t.tiers[tier][1],
+  });
+  if (!session || !session.url) {
+    sh.getRange(row, VC['Status']).setValue(VOUCHER_STATUS.failed);
+    return { error: 'checkout_failed' };
+  }
+  sh.getRange(row, VC['Stripe']).setValue(session.id);
+  return { ok: true, checkout_url: session.url };
+}
+
+// SV-XXXX-XXXX from letters and digits that can't be mixed up (no 0/O, 1/I/L).
+function newVoucherCode_() {
+  const abc = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, Utilities.getUuid() + Date.now());
+  let s = '';
+  for (let i = 0; i < 8; i++) s += abc[(bytes[i] + 256) % abc.length];
+  return 'SV-' + s.slice(0, 4) + '-' + s.slice(4);
+}
+
+function voucherSheet_(create) {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('VOUCHER_SHEET_ID');
+  if (id) return SpreadsheetApp.openById(id).getSheets()[0];
+  if (!create) return null;
+  const ss = SpreadsheetApp.create('Sanctum Sound - vouchery');
+  ss.setSpreadsheetTimeZone(TZ);
+  const sh = ss.getSheets()[0];
+  sh.setName('Vouchery');
+  sh.appendRow(VOUCHER_COLUMNS);
+  sh.getRange(1, 1, 1, VOUCHER_COLUMNS.length).setFontWeight('bold');
+  sh.setFrozenRows(1);
+  sh.getRange('M:N').setNumberFormat('dd.MM.yyyy HH:mm');
+  sh.getRange('O:O').setNumberFormat('dd.MM.yyyy');
+  props.setProperty('VOUCHER_SHEET_ID', ss.getId());
+  return sh;
+}
+
+function findVoucherRow_(sh, code) {
+  if (sh.getLastRow() < 2) return 0;
+  const cell = sh.getRange(2, VC['Kod'], sh.getLastRow() - 1, 1).createTextFinder(code).matchEntireCell(true).findNext();
+  return cell ? cell.getRow() : 0;
+}
+
+// Paid on Stripe (the page's confirm or the 5-minute sync): mark it paid, then email the voucher.
+function voucherPaid_(code, session) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return; // the next sync tries again
+  let v;
+  try {
+    const sh = voucherSheet_(false);
+    const row = sh ? findVoucherRow_(sh, code) : 0;
+    if (!row) return console.error('Paid voucher not in the list: ' + code + ' (' + session.id + ')');
+    const range = sh.getRange(row, 1, 1, VOUCHER_COLUMNS.length);
+    const r = range.getValues()[0];
+    if (r[VC['Status'] - 1] === VOUCHER_STATUS.paid) return;
+    const paidAt = new Date();
+    const until = new Date(paidAt.getTime());
+    until.setMonth(until.getMonth() + VOUCHER_VALID_MONTHS);
+    const tier = Object.keys(VOUCHERS).find((k) => VOUCHERS[k].label === r[VC['Pakiet'] - 1]) || 'gift';
+    v = {
+      code: code, tier: tier, amount: r[VC['Kwota (zł)'] - 1], name: r[VC['Kupujący'] - 1], email: r[VC['E-mail'] - 1],
+      phone: r[VC['Telefon'] - 1], recipient: r[VC['Dla kogo'] - 1], message: r[VC['Dedykacja'] - 1],
+      hidePrice: r[VC['Ukryta kwota'] - 1] === 'tak',
+      lang: VOUCHER_MAIL[r[VC['Język'] - 1]] ? r[VC['Język'] - 1] : 'pl', until: until,
+      paid: session.amount_total / 100 + ' ' + String(session.currency || 'pln').toUpperCase(),
+    };
+    sh.getRange(row, VC['Status']).setValue(VOUCHER_STATUS.paid);
+    sh.getRange(row, VC['Opłacono']).setValue(paidAt);
+    sh.getRange(row, VC['Ważny do']).setValue(until);
+    sh.getRange(row, VC['Stripe']).setValue(session.id + ', ' + v.paid);
+    const mailed = sendVoucher_(v);
+    if (!mailed) sh.getRange(row, VC['Stripe']).setValue(session.id + ', ' + v.paid + ', BŁĄD WYSYŁKI MAILA');
+    const d = (x) => Utilities.formatDate(x, TZ, 'dd.MM.yyyy');
+    telegram_(
+      [
+        '🎁 <b>Sprzedany voucher</b>',
+        '',
+        '<b>' + tgEsc_(VOUCHERS[tier].label) + ', ' + v.amount + ' zł</b>',
+        tgEsc_(VOUCHERS[tier].items),
+        'Kod: <b>' + code + '</b>',
+        'Ważny do: ' + d(until),
+        'Kupujący: ' + tgEsc_(v.name),
+        'Telefon: ' + tgEsc_(v.phone || '-'),
+        'E-mail: ' + tgEsc_(v.email),
+        'Dla kogo: ' + tgEsc_(v.recipient || '-'),
+        'Dedykacja: ' + tgEsc_(v.message || '-'),
+        'Kwota na voucherze: ' + (v.hidePrice ? 'ukryta' : 'widoczna'),
+        'Stripe: ' + tgEsc_(session.id) + ', ' + v.paid,
+        'Język strony: ' + v.lang.toUpperCase(),
+        mailed ? 'Voucher wysłany klientowi mailem.' : '⚠️ Mail z voucherem nie wyszedł, wyślij go ręcznie.',
+        '',
+        'Lista voucherów: ' + sh.getParent().getUrl(),
+      ].join('\n')
+    );
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// The voucher email in the buyer's language, with the printable voucher as a PDF attachment.
+function sendVoucher_(v) {
+  const t = VOUCHER_MAIL[v.lang];
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const fill = (s) => s.replace('{name}', v.name).replace('{tier}', t.tiers[v.tier][0]).replace('{phone}', STUDIO_PHONE).replace('{email}', STUDIO_EMAIL);
+  const until = Utilities.formatDate(v.until, TZ, 'dd.MM.yyyy');
+  const rows = [
+    [t.package, t.tiers[v.tier][0] + ': ' + t.tiers[v.tier][1]],
+    [t.value, v.amount + ' zł'],
+    v.recipient ? [t.for, v.recipient] : null,
+    [t.valid, until],
+    [t.paid, v.paid],
+  ].filter(Boolean);
+  const body = [fill(t.hi), '', fill(t.intro), '', t.code + ': ' + v.code]
+    .concat(rows.map((r) => r[0] + ': ' + r[1]))
+    .concat(['', fill(t.how), '', fill(t.questions), '', 'Sanctum Sound', STUDIO_ADDRESS, SITE])
+    .join('\n');
+
+  const cell = 'font-family:Helvetica,Arial,sans-serif;';
+  const detailRows = rows
+    .map(
+      (r) =>
+        '<tr><td style="' + cell + 'padding:12px 16px 12px 0;border-top:1px solid #262626;color:#9a9a9a;font-size:14px;white-space:nowrap;">' + esc(r[0]) + '</td>' +
+        '<td align="right" style="' + cell + 'padding:12px 0;border-top:1px solid #262626;color:#ffffff;font-size:14px;font-weight:bold;">' + esc(r[1]) + '</td></tr>'
+    )
+    .join('');
+  // Same dark card as the booking confirmation.
+  const html =
+    '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">' +
+    '<meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark"></head>' +
+    '<body style="margin:0;padding:0;background:#000000;">' +
+    '<div style="display:none;max-height:0;overflow:hidden;">' + esc(fill(t.intro)) + '</div>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#000000;"><tr><td align="center" style="padding:28px 12px;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">' +
+    '<tr><td align="center" style="padding:0 0 20px;"><a href="' + SITE + '"><img src="' + SITE + '/icon-192.png" width="112" height="112" alt="Sanctum Sound" style="display:block;border:0;"></a></td></tr>' +
+    '<tr><td style="background:#0d0d0d;border:1px solid #262626;border-radius:14px;padding:32px 28px;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' +
+    '<tr><td style="' + cell + 'color:#ffffff;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding-bottom:10px;">🎁&nbsp; ' + esc(t.heading) + '</td></tr>' +
+    '<tr><td style="' + cell + 'color:#ffffff;font-size:15px;line-height:1.5;padding-bottom:22px;">' + esc(fill(t.hi)) + ' ' + esc(fill(t.intro)) + '</td></tr>' +
+    '<tr><td style="background:#ffffff;border-radius:10px;padding:20px 22px;">' +
+    '<div style="' + cell + 'color:#555555;font-size:13px;text-transform:uppercase;letter-spacing:1px;">' + esc(t.code) + '</div>' +
+    '<div style="font-family:Consolas,Menlo,monospace;color:#000000;font-size:30px;font-weight:bold;line-height:1.3;padding-top:4px;letter-spacing:2px;">' + esc(v.code) + '</div>' +
+    '<div style="' + cell + 'color:#000000;font-size:16px;font-weight:bold;padding-top:6px;">' + esc(t.tiers[v.tier][0]) + ', ' + esc(v.amount) + ' zł</div>' +
+    '</td></tr>' +
+    '<tr><td style="padding-top:18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + detailRows + '</table></td></tr>' +
+    '<tr><td style="' + cell + 'padding-top:22px;color:#cfcfcf;font-size:14px;line-height:1.5;">' + esc(fill(t.how)) + '</td></tr>' +
+    '<tr><td style="' + cell + 'padding-top:12px;color:#cfcfcf;font-size:14px;line-height:1.5;">' + esc(fill(t.questions)) + '</td></tr>' +
+    '</table></td></tr>' +
+    '<tr><td align="center" style="' + cell + 'padding:22px 0 0;color:#6b6b6b;font-size:12px;line-height:1.6;">Sanctum Sound · ' + esc(STUDIO_ADDRESS) + '<br>' +
+    '<a href="' + SITE + '" style="color:#9a9a9a;">sanctum-sa.com</a></td></tr>' +
+    '</table></td></tr></table></body></html>';
+
+  const attachments = [];
+  try {
+    attachments.push(voucherPdf_(v, t, until, esc, fill));
+  } catch (err) {
+    console.error('Voucher PDF failed for ' + v.code + ': ' + err);
+  }
+  try {
+    MailApp.sendEmail({
+      to: v.email,
+      subject: fill(t.subject),
+      body: body,
+      htmlBody: html,
+      name: 'Sanctum Sound',
+      replyTo: STUDIO_EMAIL,
+      attachments: attachments,
+    });
+    return true;
+  } catch (err) {
+    console.error('Voucher email to ' + v.email + ' failed: ' + err);
+    return false;
+  }
+}
+
+// The printable voucher: one A4 page in the site's black-and-white style. It goes to the recipient, so
+// the amount is left off when the buyer ticked "hide the price" (the email to the buyer still shows it).
+function voucherPdf_(v, t, until, esc, fill) {
+  let logo = '';
+  try {
+    const img = UrlFetchApp.fetch(SITE + '/icon-512.png', { muteHttpExceptions: true });
+    if (img.getResponseCode() === 200) {
+      logo = '<img src="data:image/png;base64,' + Utilities.base64Encode(img.getContent()) + '" width="120" height="120" style="display:block;margin:0 auto 14px;">';
+    }
+  } catch (err) {
+    // no logo, the name is printed anyway
+  }
+  const f = 'font-family:Helvetica,Arial,sans-serif;';
+  const html =
+    '<html><head><meta charset="utf-8"><style>@page{size:A4;margin:16mm;}body{margin:0;' + f + 'color:#000;}</style></head><body>' +
+    '<div style="border:2px solid #000;border-radius:12px;overflow:hidden;">' +
+    '<div style="background:#000;color:#fff;text-align:center;padding:26px 20px 22px;">' + logo +
+    '<div style="' + f + 'font-size:34px;font-weight:bold;">' + esc(t.voucher) + '</div></div>' +
+    '<div style="padding:30px 36px 26px;">' +
+    // the package: the main thing on the voucher
+    '<div style="border:3px solid #000;border-radius:12px;padding:22px 20px 24px;margin:0 10px;text-align:center;">' +
+    '<div style="' + f + 'font-size:42px;font-weight:bold;line-height:1.15;">' + esc(t.tiers[v.tier][0]) + '</div>' +
+    '<div style="width:56px;height:4px;background:#000;margin:14px auto;"></div>' +
+    '<div style="' + f + 'font-size:21px;font-weight:bold;color:#111;line-height:1.4;">' + esc(t.tiers[v.tier][1]) + '</div></div>' +
+    // the fields: one boxed cell each, label on top and the value under it
+    '<table cellpadding="0" cellspacing="0" style="width:100%;table-layout:fixed;margin-top:18px;border-collapse:separate;border-spacing:10px 0;"><tr>' +
+    (v.hidePrice ? [] : [[t.value, v.amount + ' zł']])
+      .concat([[t.valid, until]])
+      .concat(v.recipient ? [[t.for, v.recipient]] : [])
+      .map(
+        (c) =>
+          '<td style="border:1.5px solid #000;border-radius:10px;padding:14px 12px;text-align:center;vertical-align:top;">' +
+          '<div style="' + f + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666;">' + esc(c[0]) + '</div>' +
+          '<div style="' + f + 'font-size:20px;font-weight:bold;margin-top:6px;">' + esc(c[1]) + '</div></td>'
+      )
+      .join('') +
+    '</tr></table>' +
+    (v.message
+      ? '<div style="background:#f2f2f2;border-left:4px solid #000;border-radius:6px;padding:16px 20px;margin:20px 10px 0;">' +
+        '<div style="' + f + 'font-size:17px;font-style:italic;color:#222;line-height:1.5;">„' + esc(v.message) + '”</div></div>'
+      : '') +
+    // the code on a black band, the part the recipient reads out when booking
+    '<div style="background:#000;border-radius:10px;padding:18px 16px;margin:24px 10px 0;text-align:center;">' +
+    '<div style="' + f + 'font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#aaa;">' + esc(t.code) + '</div>' +
+    '<div style="font-family:Courier,monospace;font-size:32px;font-weight:bold;letter-spacing:4px;color:#fff;margin-top:6px;">' + esc(v.code) + '</div></div>' +
+    '<div style="' + f + 'text-align:center;font-size:14px;color:#333;margin-top:22px;line-height:1.5;">' + esc(fill(t.how)) + '</div>' +
+    '</div>' +
+    '<div style="border-top:1px solid #000;padding:14px;text-align:center;' + f + 'font-size:12px;color:#333;">Sanctum Sound · ' +
+    esc(STUDIO_ADDRESS) + ' · ' + esc(STUDIO_PHONE) + ' · sanctum-sa.com</div>' +
+    '</div></body></html>';
+  return Utilities.newBlob(html, 'text/html', 'voucher.html').getAs('application/pdf').setName('Sanctum-Sound-voucher-' + v.code + '.pdf');
+}
+
+// Run by the 5-minute sync: unpaid vouchers whose Stripe Checkout has run out are marked expired.
+function expireVouchers_() {
+  const sh = voucherSheet_(false);
+  if (!sh || sh.getLastRow() < 2) return;
+  const n = sh.getLastRow() - 1;
+  const status = sh.getRange(2, VC['Status'], n, 1).getValues();
+  const created = sh.getRange(2, VC['Utworzono'], n, 1).getValues();
+  status.forEach((s, i) => {
+    const at = created[i][0] instanceof Date ? created[i][0].getTime() : 0;
+    if (s[0] === VOUCHER_STATUS.pending && at && Date.now() - at > HOLD_MINUTES * 60000) {
+      sh.getRange(i + 2, VC['Status']).setValue(VOUCHER_STATUS.expired);
+    }
+  });
+}
+
+// Run once from the editor to try the voucher email: sends a sample voucher (not saved anywhere) to
+// the studio's own inbox.
+function voucherTest() {
+  const until = new Date();
+  until.setMonth(until.getMonth() + VOUCHER_VALID_MONTHS);
+  const ok = sendVoucher_({
+    code: 'SV-TEST-TEST', tier: 'song', amount: VOUCHERS.song.price, name: 'Sanctum Sound', email: STUDIO_EMAIL,
+    phone: STUDIO_PHONE, recipient: 'Anna', message: 'Wszystkiego najlepszego!', lang: 'pl', until: until, paid: VOUCHERS.song.price + ' PLN',
+  });
+  console.log(ok ? 'Sent to ' + STUDIO_EMAIL + '. Check the inbox.' : 'Not sent, see the error above.');
+}
+
 function stripePost_(path, params) {
   const key = PropertiesService.getScriptProperties().getProperty('STRIPE_SECRET_KEY');
   if (!key) return null;
@@ -707,7 +1140,8 @@ function telegramTest() {
 
 // ---------------------------------------------------------------- setup and helpers
 
-// Run once from the editor: creates the 5-minute Stripe sync and asks for calendar permission.
+// Run once from the editor (and again after updating this file): creates the 5-minute Stripe sync,
+// makes the voucher list and asks for the calendar, email and Sheets permissions.
 function setup() {
   ScriptApp.getProjectTriggers()
     .filter((t) => t.getHandlerFunction() === 'syncStripe')
@@ -715,6 +1149,7 @@ function setup() {
   ScriptApp.newTrigger('syncStripe').timeBased().everyMinutes(5).create();
   console.log('Calendar: ' + calendar_().getName() + '. Stripe sync runs every 5 minutes.');
   console.log('Emails left today: ' + MailApp.getRemainingDailyQuota()); // also asks for the email permission
+  console.log('Voucher list: ' + voucherSheet_(true).getParent().getUrl()); // also asks for the Sheets permission
 }
 
 function calendar_() {

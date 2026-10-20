@@ -10,7 +10,7 @@
 - [Wynajem sprzętu](https://sanctum-sa.com/rent/): Nagłośnienie, mikrofony, wzmacniacze i sprzęt sceniczny.
 - [Cennik](https://sanctum-sa.com/price/): Nagrywanie od 120 zł/godz., sala prób od 50 zł/godz. (perkusja lub wokal), 60 zł/godz. pełny skład, miks i mastering od 400 zł/utwór.
 - [Kontakt](https://sanctum-sa.com/contact/): Adres, telefon, formularz i mapa.
-- [Voucher](https://sanctum-sa.com/voucher/): Voucher na nagranie piosenki w studio jako prezent.
+- [Voucher](https://sanctum-sa.com/voucher/): Voucher na nagranie lub próby jako prezent, kupowany online (Stripe), PDF mailem od razu, ważny 3 miesiące: Start 2 godz. nagrania 240 zł, Jedna piosenka 599 zł, Singiel zespołu 990 zł, Dzień w studiu 1690 zł, Pakiet prób 10 godz. 550 zł, karta podarunkowa od 100 zł.
 - [Rezerwacja online](https://sanctum-sa.com/booking/): Sala prób: wybór terminu w kalendarzu i płatność online (Stripe). Nagranie oraz miks i mastering: formularz zapytania, oddzwaniamy.
 
 ## Other languages

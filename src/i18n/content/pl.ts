@@ -283,11 +283,14 @@ const copy: SiteCopy = {
     sections: [
       {
         h2: 'Voucher do studia nagrań w Warszawie - pakiety',
-        body: ['Do wyboru są trzy rodzaje voucherów. Cenę każdego pakietu ustalamy indywidualnie, napisz do nas, a przygotujemy ofertę:'],
+        body: ['Do wyboru jest sześć voucherów. Każdy kupisz online na tej stronie, a PDF przyjdzie mailem od razu po płatności:'],
         list: [
-          'Jedna piosenka: 2 godziny nagrań z realizatorem oraz miks i mastering jednego utworu. Cena do uzgodnienia.',
-          'Piosenka z produkcją: pomoc przy aranżacji i podkładzie, nagranie, miks i mastering. Cena do uzgodnienia.',
-          'Godziny w studiu lub na sali prób: wybrana liczba godzin do wykorzystania na nagrania albo próby. Cena do uzgodnienia.',
+          'Start: 2 godz. nagrania z realizatorem, 240 zł.',
+          'Jedna piosenka: 2 godz. nagrania oraz miks i mastering jednego utworu, 599 zł.',
+          'Singiel zespołu: 5 godz. nagrania oraz miks i mastering jednego utworu, 990 zł.',
+          'Dzień w studiu: 8 godz. nagrania oraz miks i mastering dwóch utworów, 1690 zł.',
+          'Pakiet prób: 10 godz. na sali prób, 550 zł.',
+          'Karta podarunkowa: dowolna kwota od 100 zł na wszystkie usługi studia.',
         ],
       },
       {
@@ -305,7 +308,7 @@ const copy: SiteCopy = {
       {
         h2: 'Jak działa voucher na nagranie piosenki',
         body: [
-          'Voucher na nagranie piosenki wysyłamy jako PDF mailem albo przygotowujemy wydrukowany. Termin ważności ustalamy przy zakupie. Obdarowany sam wybiera termin sesji, kontaktując się z nami telefonicznie lub przez Instagram.',
+          'Po płatności voucher w PDF przychodzi od razu na Twój e-mail, z kodem, wybranym pakietem i datą ważności. Możesz go wydrukować albo przesłać dalej. Voucher jest ważny 3 miesiące od zakupu. Obdarowany sam wybiera termin sesji, kontaktując się z nami telefonicznie lub przez Instagram.',
           'Dla porównania: nagranie piosenki w studio kosztuje u nas od 120 zł za godzinę, a miks i mastering od 400 zł za utwór.',
         ],
       },
@@ -313,11 +316,11 @@ const copy: SiteCopy = {
     faq: [
       {
         q: 'Ile kosztuje voucher na nagranie piosenki?',
-        a: 'Cenę ustalamy indywidualnie, zależnie od pakietu. Napisz lub zadzwoń pod +48 881 238 684, a przygotujemy ofertę.',
+        a: 'Od 240 zł za 2 godziny nagrania. Voucher na jedną piosenkę z miksem i masteringiem kosztuje 599 zł, a kartę podarunkową kupisz na dowolną kwotę od 100 zł.',
       },
       {
         q: 'Jak długo ważny jest voucher?',
-        a: 'Termin ważności ustalamy przy zakupie, tak żeby obdarowany miał wygodny czas na wybór terminu.',
+        a: '3 miesiące od dnia zakupu. Data ważności jest wpisana na voucherze.',
       },
       {
         q: 'Czy trzeba umieć śpiewać, żeby skorzystać z vouchera?',
