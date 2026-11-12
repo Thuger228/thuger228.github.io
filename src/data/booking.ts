@@ -1,10 +1,10 @@
 // Online booking: which services can be booked and their prices.
 //
-// Only the rehearsal room is booked in the calendar and paid online. GitHub Pages has no server, so
-// the Google Apps Script backend (google-apps-script/Code.gs) creates the Stripe Checkout for the
-// exact amount; no Stripe key ever touches this site. The backend has its own copy of the rehearsal
-// prices (REHEARSAL in Code.gs) and charges those, so change both together.
-// Recording and mixing are requests: the studio writes or calls back.
+// The rehearsal room and recording are booked in the calendar and paid online. GitHub Pages has no
+// server, so the Google Apps Script backend (google-apps-script/Code.gs) creates the Stripe Checkout for
+// the exact amount; no Stripe key ever touches this site. The backend has its own copy of the prices
+// (PLANS in Code.gs) and charges those, so change both together.
+// Mixing is a request: the studio writes or calls back.
 
 export type BookingServiceId = 'recording' | 'rehearsal' | 'mixing';
 
@@ -28,8 +28,8 @@ export const BOOKING_SERVICES: BookingService[] = [
     id: 'recording',
     pricePerUnit: 120,
     unit: 'hour',
-    needsSlot: false, // a request: the studio writes or calls back to agree the date (set by the studio on 2026-10-12)
-    maxQuantity: 12,
+    needsSlot: true, // booked in the calendar and paid online like the rehearsal room (studio, 2026-11-11)
+    maxQuantity: 8, // longest recording session; MAX_HOURS.recording in Code.gs
   },
   {
     id: 'mixing',
@@ -49,6 +49,25 @@ export const REHEARSAL_OPTIONS: { id: RehearsalOptionId; price: number; perHour:
   { id: 'double_pedal', price: 5, perHour: false },
   { id: 'solo', price: -10, perHour: true }, // drums only or vocals only
 ];
+
+// Ticks the customer can set per service. Recording has "what we record" (vocals, drums, ...), which
+// costs nothing (price 0) and is only noted on the booking. group 'record' shows under "What we record",
+// the rest under "Extras". Keep in line with PLANS[service].options in Code.gs.
+export type RecordingPartId = 'vocals' | 'drums' | 'guitars' | 'bass' | 'keys' | 'other';
+export type BookingOptionId = RehearsalOptionId | RecordingPartId;
+export interface BookingOption {
+  id: BookingOptionId;
+  price: number;
+  perHour: boolean;
+  group?: 'record';
+}
+// Recording drums takes at least 2 hours (set by the studio on 2026-11-11); MIN_HOURS_DRUMS in Code.gs.
+export const MIN_RECORDING_HOURS_DRUMS = 2;
+const RECORDING_PARTS: RecordingPartId[] = ['vocals', 'drums', 'guitars', 'bass', 'keys', 'other'];
+export const SERVICE_OPTIONS: Partial<Record<BookingServiceId, BookingOption[]>> = {
+  rehearsal: REHEARSAL_OPTIONS,
+  recording: RECORDING_PARTS.map((id): BookingOption => ({ id, price: 0, perHour: false, group: 'record' })),
+};
 
 // Booking backend: the Google Apps Script web app from google-apps-script/Code.gs, deployed in the
 // studio's Google account (https://script.google.com/macros/s/.../exec). It reads busy times from the

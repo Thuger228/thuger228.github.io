@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { pageUrl } from '@/i18n/config';
 
 const Booking = () => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { page, form } = useBookingCopy();
   const url = pageUrl(language, 'booking');
   const hourPrice = (price: number, description?: string) => ({
@@ -17,7 +17,7 @@ const Booking = () => {
     priceSpecification: { '@type': 'UnitPriceSpecification', price, priceCurrency: 'PLN', unitCode: 'HUR' },
   });
 
-  // Only the rehearsal room is booked and paid online; recording and mixing are request forms.
+  // The rehearsal room and recording are booked and paid online; mixing is a request form.
   const rehearsalJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -45,13 +45,20 @@ const Booking = () => {
     },
   };
 
+  const recordingJsonLd = {
+    ...rehearsalJsonLd,
+    name: `${page.h1}: ${t('price_recording_name')}`,
+    serviceType: 'Music recording studio session',
+    offers: [hourPrice(120)],
+  };
+
   return (
     <div className="min-h-screen pt-16 md:pt-20">
       <SEO
         title={page.title}
         description={page.desc}
         page="booking"
-        jsonLd={[rehearsalJsonLd, pageFaqJsonLd(page.faq)]}
+        jsonLd={[rehearsalJsonLd, recordingJsonLd, pageFaqJsonLd(page.faq)]}
       />
       <section className="pt-12 md:pt-20">
         <div className="container mx-auto px-6">

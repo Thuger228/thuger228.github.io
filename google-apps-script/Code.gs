@@ -4,7 +4,7 @@
  * The studio's Google Calendar is the booking database:
  *   - the booking page reads busy times from it (event titles never leave this script),
  *   - every booking made on the site becomes a calendar event,
- *   - rehearsal room bookings get a Stripe Checkout for the exact amount, created here,
+ *   - rehearsal room and recording bookings get a Stripe Checkout for the exact amount, created here,
  *   - Stripe payments are confirmed by asking Stripe directly, then the event is marked paid and the
  *     customer gets a confirmation email with a calendar invite (in the language they booked in).
  *   - gift vouchers from /voucher/ are paid the same way; they're listed in a Google Sheet in this
@@ -25,7 +25,8 @@
 
 const TZ = 'Europe/Warsaw';
 const MIN_NOTICE_MINUTES = 240; // a booking must start at least 4 hours from now (same as the site)
-const MAX_REHEARSAL_HOURS = 4; // longest rehearsal (same as maxQuantity in src/data/booking.ts)
+const MAX_HOURS = { rehearsal: 4, recording: 8 }; // longest booking per service (maxQuantity in src/data/booking.ts)
+const MIN_HOURS_DRUMS = 2; // recording drums takes at least 2 hours (MIN_RECORDING_HOURS_DRUMS on the site)
 const CHECKOUT_MINUTES = 31; // the Stripe Checkout expires after this (Stripe's minimum is 30)
 const HOLD_MINUTES = 35; // an unpaid booking holds its slot this long while the customer pays
 const KEEP_UNPAID_HOURS = 25; // unpaid bookings stay in the calendar (as expired) this long, then are deleted
@@ -34,15 +35,32 @@ const SITE = 'https://sanctum-sa.com';
 const STUDIO_EMAIL = 'support@sanctum-sa.com'; // sender and organizer of the customer's calendar invite
 const STUDIO_PHONE = '+48 881 238 684';
 const STUDIO_ADDRESS = 'Aleja Stanów Zjednoczonych 67, 03-770 Warszawa';
+const STUDIO_INSTAGRAM = '@sanctum_sound_studio';
 
-// Rehearsal room prices in PLN, charged on Stripe. Keep in line with src/data/booking.ts.
-// perHour extras change the hourly price; the others are a fixed charge per rehearsal.
-const REHEARSAL = {
-  perHour: 60,
-  options: {
-    cymbals: { price: 10, perHour: false, label: 'zestaw talerzy' },
-    double_pedal: { price: 5, perHour: false, label: 'podwójna stopa' },
-    solo: { price: -10, perHour: true, label: 'tylko perkusja lub wokal' },
+// Prices in PLN, charged on Stripe. Keep in line with src/data/booking.ts.
+// perHour extras change the hourly price; the others are a fixed charge per booking. An extra with
+// price 0 (recording: what we record) is only noted on the booking.
+const PLANS = {
+  rehearsal: {
+    perHour: 60,
+    product: 'Sala prób',
+    options: {
+      cymbals: { price: 10, perHour: false, label: 'zestaw talerzy' },
+      double_pedal: { price: 5, perHour: false, label: 'podwójna stopa' },
+      solo: { price: -10, perHour: true, label: 'tylko perkusja lub wokal' },
+    },
+  },
+  recording: {
+    perHour: 120,
+    product: 'Nagrywanie',
+    options: {
+      vocals: { price: 0, perHour: false, label: 'nagrywamy: wokal' },
+      drums: { price: 0, perHour: false, label: 'nagrywamy: perkusja' },
+      guitars: { price: 0, perHour: false, label: 'nagrywamy: gitary' },
+      bass: { price: 0, perHour: false, label: 'nagrywamy: bas' },
+      keys: { price: 0, perHour: false, label: 'nagrywamy: klawisze' },
+      other: { price: 0, perHour: false, label: 'nagrywamy: inne (w uwagach)' },
+    },
   },
 };
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -120,7 +138,8 @@ function book_(b) {
     !/^[A-Za-z0-9_-]{6,200}$/.test(b.reference || '') ||
     !(start_minute >= 0 && start_minute < 1440) ||
     !(duration >= 30 && duration <= 720) ||
-    (b.service === 'rehearsal' && duration > MAX_REHEARSAL_HOURS * 60)
+    duration > (MAX_HOURS[b.service] || 0) * 60 ||
+    (b.service === 'recording' && (b.options || []).indexOf('drums') >= 0 && duration < MIN_HOURS_DRUMS * 60)
   ) {
     return { error: 'invalid_booking' };
   }
@@ -128,14 +147,15 @@ function book_(b) {
   const end = new Date(start.getTime() + duration * 60000);
   if (start.getTime() < Date.now() + MIN_NOTICE_MINUTES * 60000) return { error: 'too_soon' };
 
-  // The price is worked out here from REHEARSAL, never taken from the page.
+  // The price is worked out here from PLANS, never taken from the page.
+  const plan = PLANS[b.service];
   const hours = duration / 60;
-  const options = Object.keys(REHEARSAL.options).filter((k) => (b.options || []).indexOf(k) >= 0);
-  const priced = b.service === 'rehearsal' && hours === Math.floor(hours);
-  const opt = (k) => REHEARSAL.options[k];
+  const options = Object.keys(plan.options).filter((k) => (b.options || []).indexOf(k) >= 0);
+  const priced = hours === Math.floor(hours);
+  const opt = (k) => plan.options[k];
   const hourly = options.filter((k) => opt(k).perHour);
-  const fixed = options.filter((k) => !opt(k).perHour);
-  const perHour = priced ? hourly.reduce((sum, k) => sum + opt(k).price, REHEARSAL.perHour) : 0;
+  const fixed = options.filter((k) => !opt(k).perHour && opt(k).price);
+  const perHour = priced ? hourly.reduce((sum, k) => sum + opt(k).price, plan.perHour) : 0;
   const fixedTotal = priced ? fixed.reduce((sum, k) => sum + opt(k).price, 0) : 0;
   const amount = perHour * hours + fixedTotal;
   const checkout = Boolean(b.checkout) && priced && amount > 0;
@@ -159,7 +179,7 @@ function book_(b) {
           ? 'Kwota: ' + amount + ' zł (' + hours + ' × ' + perHour + ' zł/h' + (fixedTotal ? ' + ' + fixedTotal + ' zł' : '') + ')' +
             (checkout ? ', płatność Stripe' : ', płatność do ustalenia')
           : 'Kwota: do ustalenia',
-        'Dodatki: ' + (options.map((k) => REHEARSAL.options[k].label).join(', ') || '-'),
+        'Dodatki: ' + (options.map((k) => opt(k).label).join(', ') || '-'),
         'Uwagi: ' + (clip_(b.notes, 2000) || '-'),
       ].join('\n'),
     });
@@ -196,16 +216,16 @@ function book_(b) {
     'line_items[0][price_data][currency]': 'pln',
     'line_items[0][price_data][unit_amount]': String(perHour * 100),
     'line_items[0][price_data][product_data][name]':
-      'Sala prób - 1 godz.' + (hourly.length ? ' (' + hourly.map((k) => opt(k).label).join(', ') + ')' : ''),
+      plan.product + ' - 1 godz.' + (hourly.length ? ' (' + hourly.map((k) => opt(k).label).join(', ') + ')' : ''),
     'line_items[0][price_data][product_data][description]': b.date + ', ' + pad_(Math.floor(start_minute / 60)) + ':' + pad_(start_minute % 60),
   };
-  // Fixed extras: one line each, charged once per rehearsal.
+  // Fixed extras: one line each, charged once per booking.
   fixed.forEach((k, i) => {
     const line = 'line_items[' + (i + 1) + ']';
     params[line + '[quantity]'] = '1';
     params[line + '[price_data][currency]'] = 'pln';
     params[line + '[price_data][unit_amount]'] = String(opt(k).price * 100);
-    params[line + '[price_data][product_data][name]'] = 'Sala prób: ' + opt(k).label;
+    params[line + '[price_data][product_data][name]'] = plan.product + ': ' + opt(k).label;
   });
   const session = stripePost_('checkout/sessions', params);
   if (!session || !session.url) {
@@ -360,7 +380,13 @@ const MAIL = {
     title: 'Próba w Sanctum Sound',
     heading: 'Rezerwacja potwierdzona', room: 'Sala prób', button: 'Dodaj do Kalendarza Google', icsNote: 'Zaproszenie do kalendarza jest też w załączniku (invite.ics).', directions: 'Jak dojechać',
     days: ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'],
-    options: { cymbals: 'Zestaw talerzy', double_pedal: 'Podwójna stopa', solo: 'Tylko perkusja lub tylko wokal' },
+    options: { cymbals: 'Zestaw talerzy', double_pedal: 'Podwójna stopa', solo: 'Tylko perkusja lub tylko wokal', vocals: 'Wokal', drums: 'Perkusja', guitars: 'Gitary', bass: 'Bas', keys: 'Klawisze', other: 'Inne' },
+    recording: {
+      subject: 'Potwierdzenie rezerwacji: nagranie, {date} {time}',
+      intro: 'dziękujemy za płatność. Twoja sesja nagraniowa jest potwierdzona.',
+      title: 'Nagranie w Sanctum Sound',
+      room: 'Nagrywanie',
+    },
   },
   en: {
     subject: 'Booking confirmed: rehearsal room, {date} {time}',
@@ -373,7 +399,13 @@ const MAIL = {
     title: 'Rehearsal at Sanctum Sound',
     heading: 'Booking confirmed', room: 'Rehearsal room', button: 'Add to Google Calendar', icsNote: 'The calendar invite is also attached (invite.ics).', directions: 'Get directions',
     days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    options: { cymbals: 'Cymbal set', double_pedal: 'Double bass drum pedal', solo: 'Drums or vocals only' },
+    options: { cymbals: 'Cymbal set', double_pedal: 'Double bass drum pedal', solo: 'Drums or vocals only', vocals: 'Vocals', drums: 'Drums', guitars: 'Guitars', bass: 'Bass', keys: 'Keys', other: 'Other' },
+    recording: {
+      subject: 'Booking confirmed: recording, {date} {time}',
+      intro: 'thanks for your payment. Your recording session is confirmed.',
+      title: 'Recording at Sanctum Sound',
+      room: 'Recording',
+    },
   },
   uk: {
     subject: 'Бронювання підтверджено: репетиційна зала, {date} {time}',
@@ -386,7 +418,13 @@ const MAIL = {
     title: 'Репетиція в Sanctum Sound',
     heading: 'Бронювання підтверджено', room: 'Репетиційна зала', button: 'Додати в Google Календар', icsNote: 'Запрошення в календар також у вкладенні (invite.ics).', directions: 'Як дістатися',
     days: ['понеділок', 'вівторок', 'середа', 'четвер', 'пʼятниця', 'субота', 'неділя'],
-    options: { cymbals: 'Комплект тарілок', double_pedal: 'Подвійна педаль', solo: 'Тільки барабани або тільки вокал' },
+    options: { cymbals: 'Комплект тарілок', double_pedal: 'Подвійна педаль', solo: 'Тільки барабани або тільки вокал', vocals: 'Вокал', drums: 'Барабани', guitars: 'Гітари', bass: 'Бас', keys: 'Клавішні', other: 'Інше' },
+    recording: {
+      subject: 'Бронювання підтверджено: запис, {date} {time}',
+      intro: 'Дякуємо за оплату. Ваш запис підтверджено.',
+      title: 'Запис у Sanctum Sound',
+      room: 'Запис',
+    },
   },
   be: {
     subject: 'Браніраванне пацверджана: рэпетыцыйная зала, {date} {time}',
@@ -399,7 +437,13 @@ const MAIL = {
     title: 'Рэпетыцыя ў Sanctum Sound',
     heading: 'Браніраванне пацверджана', room: 'Рэпетыцыйная зала', button: 'Дадаць у Google Каляндар', icsNote: 'Запрашэнне ў каляндар таксама ва ўкладанні (invite.ics).', directions: 'Як дабрацца',
     days: ['панядзелак', 'аўторак', 'серада', 'чацвер', 'пятніца', 'субота', 'нядзеля'],
-    options: { cymbals: 'Камплект талерак', double_pedal: 'Падвойная педаль', solo: 'Толькі барабаны або толькі вакал' },
+    options: { cymbals: 'Камплект талерак', double_pedal: 'Падвойная педаль', solo: 'Толькі барабаны або толькі вакал', vocals: 'Вакал', drums: 'Барабаны', guitars: 'Гітары', bass: 'Бас', keys: 'Клавішныя', other: 'Іншае' },
+    recording: {
+      subject: 'Браніраванне пацверджана: запіс, {date} {time}',
+      intro: 'Дзякуй за аплату. Ваш запіс пацверджаны.',
+      title: 'Запіс у Sanctum Sound',
+      room: 'Запіс',
+    },
   },
   ru: {
     subject: 'Бронирование подтверждено: репетиционная комната, {date} {time}',
@@ -412,7 +456,13 @@ const MAIL = {
     title: 'Репетиция в Sanctum Sound',
     heading: 'Бронирование подтверждено', room: 'Репетиционная комната', button: 'Добавить в Google Календарь', icsNote: 'Приглашение в календарь также во вложении (invite.ics).', directions: 'Как добраться',
     days: ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье'],
-    options: { cymbals: 'Комплект тарелок', double_pedal: 'Двойная педаль', solo: 'Только барабаны или только вокал' },
+    options: { cymbals: 'Комплект тарелок', double_pedal: 'Двойная педаль', solo: 'Только барабаны или только вокал', vocals: 'Вокал', drums: 'Барабаны', guitars: 'Гитары', bass: 'Бас', keys: 'Клавишные', other: 'Другое' },
+    recording: {
+      subject: 'Бронирование подтверждено: запись, {date} {time}',
+      intro: 'Спасибо за оплату. Ваша запись подтверждена.',
+      title: 'Запись в Sanctum Sound',
+      room: 'Запись',
+    },
   },
 };
 
@@ -423,7 +473,9 @@ function sendConfirmation_(ev, session) {
   const details = session.customer_details || {};
   const to = String(details.email || session.customer_email || ev.getTag('sanctumEmail') || '').trim();
   if (!/^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(to)) return;
-  const t = MAIL[ev.getTag('sanctumLang')] || MAIL.pl;
+  const lang = MAIL[ev.getTag('sanctumLang')] || MAIL.pl;
+  // Recording bookings use the same email with their own subject, intro, title and room name.
+  const t = ev.getTag('sanctumService') === 'recording' ? Object.assign({}, lang, lang.recording) : lang;
   const start = ev.getStartTime();
   const end = ev.getEndTime();
   const hours = Math.round((end.getTime() - start.getTime()) / 360000) / 10;
@@ -594,8 +646,9 @@ const VOUCHER_MAIL = {
     intro: 'dziękujemy za zakup! Voucher jest w załączniku (PDF), gotowy do wydruku lub przesłania dalej.',
     heading: 'Twój voucher', voucher: 'Voucher', package: 'Pakiet', value: 'Wartość', for: 'Dla', code: 'Kod vouchera',
     valid: 'Ważny do', paid: 'Zapłacono',
-    how: 'Jak skorzystać: zadzwoń pod {phone} albo napisz na {email}, podaj kod i umów termin sesji.',
+    how: 'Jak skorzystać: skontaktuj się z nami w dowolny sposób (telefon {phone}, e-mail {email}, Instagram lub formularz na sanctum-sa.com), podaj kod i umów termin sesji.',
     questions: 'Pytania? Zadzwoń pod {phone} albo odpowiedz na tego maila.',
+    hours: 'Codziennie 9:00-24:00', // opening hours, in the voucher footer
     tiers: {
       start: ['Start', '2 godz. nagrania z realizatorem'],
       song: ['Jedna piosenka', '2 godz. nagrania, miks i mastering 1 utworu'],
@@ -611,8 +664,9 @@ const VOUCHER_MAIL = {
     intro: 'thank you for your purchase! The voucher is attached as a PDF, ready to print or forward.',
     heading: 'Your voucher', voucher: 'Gift voucher', package: 'Package', value: 'Value', for: 'For', code: 'Voucher code',
     valid: 'Valid until', paid: 'Paid',
-    how: 'How to use it: call {phone} or email {email}, give the code and book a session.',
+    how: 'How to use it: contact us any way you like (phone {phone}, email {email}, Instagram or the form on sanctum-sa.com), give the code and book a session.',
     questions: 'Questions? Call {phone} or reply to this email.',
+    hours: 'Every day 9:00-24:00', // opening hours, in the voucher footer
     tiers: {
       start: ['Start', '2 h of recording with a sound engineer'],
       song: ['One song', '2 h of recording, mixing and mastering of 1 song'],
@@ -628,8 +682,9 @@ const VOUCHER_MAIL = {
     intro: 'Дякуємо за покупку! Сертифікат у вкладенні (PDF), його можна роздрукувати або переслати.',
     heading: 'Ваш сертифікат', voucher: 'Подарунковий сертифікат', package: 'Пакет', value: 'Вартість', for: 'Для', code: 'Код сертифіката',
     valid: 'Дійсний до', paid: 'Сплачено',
-    how: 'Як скористатися: зателефонуйте {phone} або напишіть на {email}, назвіть код і домовтеся про дату сесії.',
+    how: 'Як скористатися: зв’яжіться з нами будь-яким способом (телефон {phone}, e-mail {email}, Instagram або форма на sanctum-sa.com), назвіть код і домовтеся про дату сесії.',
     questions: 'Питання? Телефонуйте {phone} або дайте відповідь на цей лист.',
+    hours: 'Щодня 9:00-24:00', // opening hours, in the voucher footer
     tiers: {
       start: ['Старт', '2 год запису зі звукорежисером'],
       song: ['Одна пісня', '2 год запису, зведення і мастеринг 1 пісні'],
@@ -645,8 +700,9 @@ const VOUCHER_MAIL = {
     intro: 'Дзякуй за пакупку! Сертыфікат ва ўкладанні (PDF), яго можна раздрукаваць або пераслаць.',
     heading: 'Ваш сертыфікат', voucher: 'Падарункавы сертыфікат', package: 'Пакет', value: 'Кошт', for: 'Для', code: 'Код сертыфіката',
     valid: 'Дзейнічае да', paid: 'Аплачана',
-    how: 'Як скарыстацца: патэлефануйце {phone} або напішыце на {email}, назавіце код і дамоўцеся пра дату сесіі.',
+    how: 'Як скарыстацца: звяжыцеся з намі любым спосабам (тэлефон {phone}, e-mail {email}, Instagram або форма на sanctum-sa.com), назавіце код і дамоўцеся пра дату сесіі.',
     questions: 'Пытанні? Тэлефануйце {phone} або адкажыце на гэты ліст.',
+    hours: 'Штодня 9:00-24:00', // opening hours, in the voucher footer
     tiers: {
       start: ['Старт', '2 гадз запісу з гукарэжысёрам'],
       song: ['Адна песня', '2 гадз запісу, зводка і мастэрынг 1 песні'],
@@ -662,8 +718,9 @@ const VOUCHER_MAIL = {
     intro: 'Спасибо за покупку! Сертификат во вложении (PDF), его можно распечатать или переслать.',
     heading: 'Ваш сертификат', voucher: 'Подарочный сертификат', package: 'Пакет', value: 'Стоимость', for: 'Для', code: 'Код сертификата',
     valid: 'Действует до', paid: 'Оплачено',
-    how: 'Как воспользоваться: позвоните {phone} или напишите на {email}, назовите код и договоритесь о дате сессии.',
+    how: 'Как воспользоваться: свяжитесь с нами любым способом (телефон {phone}, e-mail {email}, Instagram или форма на sanctum-sa.com), назовите код и договоритесь о дате сессии.',
     questions: 'Вопросы? Звоните {phone} или ответьте на это письмо.',
+    hours: 'Ежедневно 9:00-24:00', // opening hours, in the voucher footer
     tiers: {
       start: ['Старт', '2 ч записи со звукорежиссёром'],
       song: ['Одна песня', '2 ч записи, сведение и мастеринг 1 песни'],
@@ -673,6 +730,16 @@ const VOUCHER_MAIL = {
       gift: ['Подарочная карта', 'На все услуги студии'],
     },
   },
+};
+
+// White line icons (PNG, 48 px) for the voucher footer. The PDF converter doesn't draw SVG or emoji reliably.
+const VOUCHER_ICONS = {
+  phone: 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAEt0lEQVR4nNRaWagURxQ982I+kmgWsxiTiHkJSeTlI4FINjRxwwU33FBx/3EBlx9FEXHFDxXFDRRxx13cRZ/ivoO7oqKiPFRcEBR3UXE81+4Zqu9Ujz393pS+A4eaunWr6p7uruqq6qmAco4KKOcosBmTyWRjcgV5MZkdJeRW8j+8JSS0gcFMYDIQuWNYIpEYC8cICGDwYyQQxMNL8i+KOAKHSAtg8IVMzpPvIz42UEALOIQ5BjoiGPwNskEiBCz7lpyq2qsLxzAF/KjKBjHO7WEVWXadHMCfVwxzRd7J2nAIU0BVVXYL0aBF/gaHMAWUqLIiRMMJlf8dDmG+yM6psqgCjqt8QziEeQfOqrKoAg6RT4x8NY6Df+AIpoAzquxXRAAH8nMm65S5NRyhwAjkJoIzSmVeyZ8RDWtU3tnSQq+Ftqh81JfSBZX/Bo6gBRSrfFNEQzuVvwNHsAl4YeRr8zH6OFsDLO/GZKgyb4QjBARwHDyGN6uk8B7ZKawyg2/FZL4y3yOnwxFs+4ElKt/f4iPB12Sy2lLUlRfiBhzBJmAhvKuYQg0GW9/iN8pi68Hg18MhMgQwgEdM5irzAEtdvVa6S26DYyRsRl7xH5hcUuaaFHfU8KkGb/nxkeFTTJ8mcAjrnphBXEbmWJiufK4yGaR8ZC89FA6RCCtgIPIyKkFwk9OBgS9XfruR+eZtQ7/VcICCsALZsCBzxzWBAX+gbD0QXMwJVtHvXzhAwRvKZaa5b+TluZ9sOviPW3syqeoWuzhuySqAwT1gMlKZezKwlspvA5N+yq8SuZu+HWxt016FnEQeI++Tu8ixuYpORHFio3uZ1DJMMmUW+StY00/OhWyDeDB9xxt+ImoG+SnskLu+kzxJyjHNDn96jy2gOpPT8K5qCofJOv7yw/SVx264pZlNZE+yETkHueEpuQLe4dlVsyCSAD8wuWpLlXkjG2xu8ZUF3nxLM/JIVkJ8yJ3vyD7Ty/43DeI0WGkZk4nK3IzBzrL4LmBSD8EJQGALfgj5BbxzqTXIjs/IRewz3U7kO5ACK69k0laZZzLoPhZfOe2bDU+MDd19sWadD+EdkBX5/J8sVPVGs94IxBHgd3KAid64r2WjrUL8RZwM4oqGuTP9FyNaf9OY9DVM+1j39QFaXAGV4e0bflJF+8mmbPyepY4cRcos9T050Z96o/b3FYKLx9usL7Z4AvxGq8A7ldOnF9fILuxgF8oQ8jHCzPvns9EHsQbryxX5G5lL6O/InexvHvkJ8ozYAgQU8RDevG57lruT8oWnF1mqfrKh1A1TxEuyM7xB9kwVf0nOJE/la10UewzYwCDlYFeW0YUhLrL0HkfBm5F722U7Bmxgm3JSLcfrc0NcZE7fxFjOk11QFn0iT2CAIkR2cbWyuMmbWqbePfDm9n0hbclkcdAwXaDvL/IjbwKMzuXUTr58Vo9YRVagclJ+xv8t42oKWcPwWeyPu/wLEFCEbEvlLd0bpf+OJmPhz9TXUCcCAr0nk3LrZWkhV/Bz5A55i6e/YzsXYMKfWuXOyJa0aoQqso/oSwFPU4a3KsAExfwBb20lpyFfw9t/y3JFdmLy3UK+QevT83dHQFyU+3+rvAIAAP//M/OKGAAAAAZJREFUAwDANaiYeoWPhAAAAABJRU5ErkJggg==',
+  mail: 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAADBklEQVR4nOyZSWgUQRSG3wxR8eQCiphDUJS4xIOgGJCIGNGDCFEPgjgQo3jwIIIXES8RFA/iRfCkBlc8iAt6UeMC5iCuoKhxAU9GRSReNeD4Pbs7FEV1T884me6G/uHnVVfVq/de1/amp0kyjibJOPIAkkYeQNJwBlAul0uILtgOZ0qyGIKP4NVCoXDebiyYDzg+A3EBrpJ04g4sEci3oMIOYACxXNKNuwSwOngoBgWc3yHpd17Ria/dwUPRaNhkdbwM5xcShvrg+2JiY1AYXUJE9RMxyei0EP03kgLg2wLEa6NqCN+atWAGUDaV/OhTgzD/ihEKL+ESSRj4sBS+CmsvRugugk9QPgonSoOhNtU2xcewLaxf6BKy8AluZ9buSwOAK3pMnoQtYX0qLiELs+A9Bu6DU2SMoGPDs+JdWC1xdKIC+O6o64aDGNksdQZjbkG8gyWJ58s/RAXQCvsc9dPhJQze9FOP/wJjNMNb4qUw0+xmeNr3xYnQAFhiw7CHYgf84OiyDr7H+C5Y9ZGrOnA3xUG4xtFFba7AB917w2HjxLoHaBqP2A/3wQmOcTRb1CTro8Rzfh7iHHQd07/gYXiE8X5X8q+qi4wuc8Sb0g5xGz7kGx4Rt+P6Ig6I9yLGObo8hD2uF1GXAIy+2xB6Rk91NL8VbzaeWTrLxHvrcx06P+BedM5IuM3qbuIooKubWzfWRUezJl9PsXcMTvaPxhPiLTOX83pstkY5H+lLUKg1F0JtJeIUnC3VQTepLpeBOJ3rOgPWQA8Qmi3q+h+JoaIb8yBsi+t8pP2gUOsMmPBPF11e7SFdQjdpjLHrt4ljGFuP2AMXwz/wOTzOkDekRjQ0gLFAmH/5h62kkQeQNPIAkkbmAzBTia9mg/8xKRVw+PIlKJgBvLA69aLoyh4bCj896bWqR1N18ybegLgi2cBaLuLbWrA/r/cjOiXduI7zXcGDnU5vhf2SXuj3op1mhTNhYyY0EP2ErT8Dk/6L6bN4v+auFSr9xZRF5BdZ0sgDSBqZD+AvAAAA//9MNjloAAAABklEQVQDAGrXQTM8jUDuAAAAAElFTkSuQmCC',
+  pin: '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',
+  globe: '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',
+  instagram: 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAEVElEQVR4nNRaV2hUURCdDSr2AnY/FLGL2DsoKih2LInEWCAKIT8GsX5IjAoSYkFFxA/9sCZGJGKJRhSNfhgbRmM0UUQQRLEGiSVY1jO+t8vN7Gv73rYcOMzeMndm3n1l7r3biBo4GlEDh6MA/H5/a4gUcC7YB+wKtqTIohZ8A74Ai8BCn89Xa6fks2qE450gNoIZYDOKLb6DB8FcBPLBrJNpAHB+JsQpsAXFF1/BZARxxagxyagSzq+BuEDxd57Bt28JfFpl1BgyA+iYBnHcoO9t8Cj4DKzEFflIEQTstocYCA4Al4OjDbqlwe5JtcInBuEBnhgorofiDooh4MsGiFyDpn7wpTpQkAGcgZgvFEZC4T7FAfBnJMRdUV0Af1IDhSSlc0eIeaLzpng5z4DtexCbRfUi+NouUFAfYo5KnZEH4HaKP7aBj5Qy+xg6A0CyUNyPK+CnGABXNAWs0pmituk+HBAqQV99yiD81VNfm2OhXEYxADsO0VcvVsNuP9E+AaJUqapBn/+3kZpKyHd+BSUOqkS5eeBHkpkGIvxGYQJXygemg0fAMvCLX0MdWAxm6umJRDZYrTPbwJf3oqpJsE0x7hdKlnmSgfPDIQ6Dg226/iHt/Z4DE7/J+fiG/kUkAKjmUOjrzg7l4HyYeeWkc9QCgNoWMph2h6gER8DUT7uOZv4lkQdgzEkU6jzfFntAvqXa6oZ6k5aSvxR9OXXJIw9wPQP8wEI8B3sp1Zz68uv3qYlOU9Kek8WiqaNVzm/ln5cZmEj1nWcDC8yc143yrbKCQmdiJrmElwAWiHI+HLxqp6QHsVNUzyCX8LKol6/LYnKOy6I8lVzCywz0EOU75ByvRbkNbnFXF9NLAHWi3IWco7VBnatdDi8ByFSjDznHRFH+RdobLGx4CaBclNPJOeQC/SEe7r/kAl4COCHK43AfL7NTQp+hEJNF9WlyCU+pBFQeQwxSqmrAdKgWmfSfRdqORxulmj9gPe124aKSC+kOnTdo4gDySVuQfwLngAspdM3NmAtT58jeVtSSuSzSch832AUza510jEoypw+0l7Sv8mcKD3lOnbe0H/gRgQUNb8scAmfbdOV7fSmGP0vhjR+9BY0wxAkev+engOPBbqQ9C7dIW5iXulyu2gYgdyW6oM87SgDAt84Qb5WqWvjWin+oz4B0dgglDoaJcjAYNQC5jZLIAQR36tQAZC6fgalrTHGGvopbKaqvBX5YBdAD3ErxB++Ndhd1QV/l9jovNKaJzqPxwMgt7pgA/owh7WBFxUX4MytQkB+yTArN829ioHWg54+eU7AtkA8Xb4imH6TtbgRhdMS0BOJY6LD1jpgqcBXC/fJaAnY7kHa8ZHXElAq7BWqFz2Sw1RC7KbGQBef3yUqrY9bpEIUU+QPtcBH+MSsDCpcg+oMlFD+w7YFmzjOcpsyc2/AqahTYk6L7VwPe7OUdjutwvNROyVXClkho8P9W+QcAAP//94x7ZQAAAAZJREFUAwAIoaiILtFJJQAAAABJRU5ErkJggg==',
+  clock: 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAE10lEQVR4nNSaZ4wVVRTHz1uIRj/YsCaiGEtQhKiRVSyoWQs2sBD9oJGVGE0wMSh8wBKNRk0ssSWoIZANBD5SwhJKKKF3QgkQCL2F3r5AqMvv8GYed87OvJl5M8vb/Sf/nL137j3nf2buu3PvnW0vbRztpY0jtwSampqexCjvgXfAjh4Vu+BOz26CCwqFwkLJAQXJAER/jnkN9oBXSTqcgItgI8n8LRWiogQQ3hfzK7xL8sFWOIhEJkhKpEoA4d0w/0pxqLQE5sABJLI+aYfECSC+P2ZEmSZrYSOcAQ/CI/Cwd60DvAHeDOtgb9iljK9+JDFKEiBRAoj/EvNzxOWh8DcC7pAUwGcnzBD4SUQTHVJ/SAxiEyDQT5ivQi5Nh58RZINkAP71SeiPuC7k8g/4/65c/0KM83pMg6k+CwdnmTkiYg3E/A7bmUvvE2tMVL+aMg4fxww31cfgc0nE60wFN3jsG9cen39hXoJHzaUG+j8R2S8iuL6MlsLrJSi+O4E2SwLgYx3mAa+4nn5dEva714t9nVOtE8Kj+Nhm20clMA/zlFN1BvbEwWJJCHw0BQKBhF3Fu+NzJTicZuLiedu2JqRzLwmKV/RLIz4rvGWGnZ3q0PZ0s7a2gkZrMF2dqkk4fF1SIssTcHxMleLvwsdS3DzmtqkxHd6VoPjz8AupHgabci0a33Qr7BD62JRHkvEmqRKIrW/30aY6MLRKj5XMrpDiCtH94TyCk5VSAfIYQp6fWswSp+oUvAZ3p7XgPgF9E7ri91YqPk+gQafUQ07VlbCnX3ATeNH0HS+tB1ZLSaubQFfTaJm0HlgtJa3ulvJG02i3tB5YLSWtbT4BdwjdZBqlWt/Hgdlkn+6hYdq9syJRAhZnJRvswusWqBuUbRUkcsaUS1Oym8Ae06ijZMMH8EBIvZ/I9hSJ3GrK+/w/3AT2hwSqGMzf8zGd4CAp7pEtdH/sJxJ3SHCbKYcmYO+WzTo1SOKkt6+9U8on0hjjKlECq0yj7pITQhKxT/tAjAurpaTVTWCqafSW5AwnET0Q01WufyeHxnR9x5RLWgMLLMaibhuvdaoeJOA6qSLQ9BDGXZMdR1Npu2mn0WmmPFCqD6thkluwT0BXpDOcKt3QdK7WngA992N0BLg6dW8+zy8EngAXZmJmO1V6/U+pHv6ToPjprnhF2Jt4iCm/yp14Ty4ziDkA84yp/tq2izpWmYLp5VTpq/zZvD5KxIH4umGZJcENln5H6G3bRiWg8/UKKZ4q+9DDpVqcbJEWBLHvw+gRjnuopjuyh4ndbIUcupjzTpr7SHARpcfjywjQQ1oI3p234lXDy2HiFZGrUToswHxkqtXxXO/QN1d4PmdJULziQ7Qsj+pXbjkt3keG7021boIaCDgRdpaM0CEDdW7XU3B7Mv1tuZPpixolWZB6aX7M7uN/+AuBtksK4FOXE9/A/hFN6vE5UmKQ5sBVx76uGjtENFkNJ4vziQkBe+h3tRSHhf+J6QX4ijQ/RPChffvQd5EkQNqPfLqV+1GKv412ki/OwWFSHDaHknaq9LRMz/3/kfDPQpVAVwCfInyjpETWD9360eJtj93S9b445MbCcVlWvJkScEEyd2PegDoz3S6X/t1A4f6rgd7lsWl/9FHILYFqoc3/t8oFAAAA//9EYQFzAAAABklEQVQDAGull6aEQ57nAAAAAElFTkSuQmCC',
 };
 
 // A voucher from the site: saved as unpaid in the voucher list, then a Stripe Checkout for its price.
@@ -944,8 +1011,34 @@ function voucherPdf_(v, t, until, esc, fill) {
     '<div style="font-family:Courier,monospace;font-size:32px;font-weight:bold;letter-spacing:4px;color:#fff;margin-top:6px;">' + esc(v.code) + '</div></div>' +
     '<div style="' + f + 'text-align:center;font-size:14px;color:#333;margin-top:22px;line-height:1.5;">' + esc(fill(t.how)) + '</div>' +
     '</div>' +
-    '<div style="border-top:1px solid #000;padding:14px;text-align:center;' + f + 'font-size:12px;color:#333;">Sanctum Sound · ' +
-    esc(STUDIO_ADDRESS) + ' · ' + esc(STUDIO_PHONE) + ' · sanctum-sa.com</div>' +
+    // footer: every way to reach the studio, each with its icon, two per row
+    '<div style="background:#000;color:#fff;padding:20px 26px 22px;">' +
+    '<div style="' + f + 'font-size:18px;font-weight:bold;text-align:center;margin-bottom:12px;">Sanctum Sound</div>' +
+    '<table cellpadding="0" cellspacing="0" style="width:100%;table-layout:fixed;">' +
+    [
+      [['phone', STUDIO_PHONE], ['mail', STUDIO_EMAIL]],
+      [['pin', STUDIO_ADDRESS], ['instagram', STUDIO_INSTAGRAM]],
+      [['globe', 'sanctum-sa.com'], ['clock', t.hours]],
+    ]
+      .map(
+        (row) =>
+          '<tr>' +
+          row
+            .map(
+              (c) =>
+                '<td style="padding:7px 8px;vertical-align:middle;">' +
+                '<table cellpadding="0" cellspacing="0"><tr>' +
+                '<td style="width:30px;vertical-align:middle;"><img src="data:image/png;base64,' + VOUCHER_ICONS[c[0]] + '" width="22" height="22" style="display:block;"></td>' +
+                '<td style="' + f + 'font-size:15px;color:#fff;vertical-align:middle;line-height:1.35;">' +
+                // the address goes on two lines: street, then postcode and city
+                (c[0] === 'pin' ? esc(c[1]).replace(', ', '<br>') : esc(c[1])) + '</td>' +
+                '</tr></table></td>'
+            )
+            .join('') +
+          '</tr>'
+      )
+      .join('') +
+    '</table></div>' +
     '</div></body></html>';
   return Utilities.newBlob(html, 'text/html', 'voucher.html').getAs('application/pdf').setName('Sanctum-Sound-voucher-' + v.code + '.pdf');
 }

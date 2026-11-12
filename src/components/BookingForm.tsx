@@ -22,8 +22,10 @@ import {
   BookingServiceId,
   MIN_NOTICE_MINUTES,
   OPENING_HOURS,
-  REHEARSAL_OPTIONS,
-  RehearsalOptionId,
+  BookingOption,
+  BookingOptionId,
+  MIN_RECORDING_HOURS_DRUMS,
+  SERVICE_OPTIONS,
   SLOT_STEP_MINUTES,
   STRIPE_LOCALES,
   STUDIO_TIME_ZONE,
@@ -135,7 +137,7 @@ const BookingForm = () => {
 
   const [serviceId, setServiceId] = useState<BookingServiceId>('rehearsal');
   const [quantity, setQuantity] = useState(1);
-  const [options, setOptions] = useState<RehearsalOptionId[]>([]);
+  const [options, setOptions] = useState<BookingOptionId[]>([]);
   const [day, setDay] = useState<string>();
   const [start, setStart] = useState<number>();
   const [step, setStep] = useState<'pick' | 'details'>('pick');
@@ -158,22 +160,40 @@ const BookingForm = () => {
   const timesRef = useRef<HTMLDivElement>(null);
 
   const service = BOOKING_SERVICES.find((s) => s.id === serviceId)!;
-  // Rehearsal extras change the hourly price. Recording and mixing have no date or quantity: they're
-  // requests the studio answers by email or phone. Only slot bookings are paid online.
-  const chosenOptions = service.id === 'rehearsal' ? REHEARSAL_OPTIONS.filter((o) => options.includes(o.id)) : [];
+  // Rehearsal extras change the price; the recording "what we record" ticks cost nothing. Mixing has no
+  // date or quantity: it's a request the studio answers by email or phone. Only slot bookings are paid online.
+  const serviceOptions = SERVICE_OPTIONS[service.id] ?? [];
+  const chosenOptions = serviceOptions.filter((o) => options.includes(o.id));
   const perHour = service.pricePerUnit + chosenOptions.reduce((sum, o) => sum + (o.perHour ? o.price : 0), 0);
   const fixedExtras = chosenOptions.reduce((sum, o) => sum + (o.perHour ? 0 : o.price), 0);
   const total = perHour * quantity + fixedExtras;
   const payOnline = service.needsSlot;
-  const optionName = (id: RehearsalOptionId) => c[`opt_${id}`];
-  const optionPrice = (o: (typeof REHEARSAL_OPTIONS)[number]) =>
-    `${o.price > 0 ? '+' : '−'}${Math.abs(o.price)} zł${o.perHour ? t('unit_hour') : ''}`;
-  const toggleOption = (id: RehearsalOptionId) =>
-    setOptions((cur) => (cur.includes(id) ? cur.filter((o) => o !== id) : [...cur, id]));
-  const requestCopy =
+  const optionName = (id: BookingOptionId) => c[`opt_${id}`];
+  const optionPrice = (o: BookingOption) =>
+    o.group === 'record' || o.price === 0
+      ? ''
+      : `${o.price > 0 ? '+' : '−'}${Math.abs(o.price)} zł${o.perHour ? t('unit_hour') : ''}`;
+  const optionLabel = (o: BookingOption) => (optionPrice(o) ? `${optionName(o.id)} (${optionPrice(o)})` : optionName(o.id));
+  const recordParts = chosenOptions.filter((o) => o.group === 'record');
+  const extraOptions = chosenOptions.filter((o) => o.group !== 'record');
+  // Recording drums needs at least 2 hours: shorter durations are greyed out and the choice moves up.
+  const minQuantity = service.id === 'recording' && options.includes('drums') ? MIN_RECORDING_HOURS_DRUMS : 1;
+  const toggleOption = (id: BookingOptionId) => {
+    const on = !options.includes(id);
+    setOptions((cur) => (on ? [...cur, id] : cur.filter((o) => o !== id)));
+    if (on && id === 'drums' && service.id === 'recording' && quantity < MIN_RECORDING_HOURS_DRUMS) {
+      setQuantity(MIN_RECORDING_HOURS_DRUMS);
+      setStart(undefined);
+    }
+  };
+  const requestCopy = { note: c.mixing_note, label: c.describe_songs, hint: c.describe_songs_hint };
+  // The free-text field: what to record for a recording session, notes for a rehearsal, the songs for mixing.
+  const notesCopy =
     serviceId === 'recording'
-      ? { note: c.recording_note, label: c.describe_recording, hint: c.describe_recording_hint }
-      : { note: c.mixing_note, label: c.describe_songs, hint: c.describe_songs_hint };
+      ? { label: c.describe_recording, hint: c.describe_recording_hint, rows: 4 }
+      : service.needsSlot
+        ? { label: c.notes, hint: undefined, rows: 3 }
+        : { label: requestCopy.label, hint: requestCopy.hint, rows: 6 };
   const durationMin = quantity * 60;
   const serviceName = (id: BookingServiceId) =>
     t(id === 'recording' ? 'price_recording_name' : id === 'rehearsal' ? 'price_rehearsal_name' : 'price_mixing_name');
@@ -319,6 +339,7 @@ const BookingForm = () => {
     setServiceId(id);
     const next = BOOKING_SERVICES.find((s) => s.id === id)!;
     setQuantity((q) => Math.min(q, next.maxQuantity));
+    setOptions([]);
     setStart(undefined);
   };
 
@@ -410,7 +431,7 @@ const BookingForm = () => {
           date: slotDay ?? '-',
           start_time: slotStart === undefined ? '-' : `${formatMinutes(slotStart)}–${formatMinutes(slotStart + durationMin)}`,
           quantity: service.needsSlot ? `${quantity} × ${perHour} zł${unitLabel(serviceId)}` : '-',
-          extras: chosenOptions.length ? chosenOptions.map((o) => `${optionName(o.id)} (${optionPrice(o)})`).join(', ') : '-',
+          extras: chosenOptions.length ? chosenOptions.map(optionLabel).join(', ') : '-',
           total: service.needsSlot ? `${total} zł` : `to agree (from ${service.pricePerUnit} zł${unitLabel(serviceId)})`,
           name: parsed.data.name,
           email: parsed.data.email,
@@ -510,9 +531,14 @@ const BookingForm = () => {
                     {formatMinutes(start)}–{formatMinutes(start + durationMin)} ({quantity} × {perHour} zł{unitLabel(serviceId)})
                   </span>
                 </li>
-                {chosenOptions.map((o) => (
+                {recordParts.length > 0 && (
+                  <li className="pl-6">
+                    {c.what_record}: {recordParts.map((o) => optionName(o.id).toLowerCase()).join(', ')}
+                  </li>
+                )}
+                {extraOptions.map((o) => (
                   <li key={o.id} className="pl-6">
-                    {optionName(o.id)} ({optionPrice(o)})
+                    {optionLabel(o)}
                   </li>
                 ))}
               </>
@@ -566,14 +592,14 @@ const BookingForm = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="booking-notes">{service.needsSlot ? c.notes : requestCopy.label}</Label>
+            <Label htmlFor="booking-notes">{notesCopy.label}</Label>
             <Textarea
               id="booking-notes"
               value={contact.notes}
               onChange={(e) => setContact({ ...contact, notes: e.target.value })}
-              placeholder={service.needsSlot ? undefined : requestCopy.hint}
+              placeholder={notesCopy.hint}
               maxLength={2000}
-              rows={service.needsSlot ? 3 : 6}
+              rows={notesCopy.rows}
             />
           </div>
           <Button type="submit" disabled={loading} className="w-full" size="lg">
@@ -629,6 +655,7 @@ const BookingForm = () => {
                   key={n}
                   type="button"
                   aria-pressed={n === quantity}
+                  disabled={n < minQuantity}
                   onClick={() => {
                     setQuantity(n);
                     setStart(undefined);
@@ -636,22 +663,28 @@ const BookingForm = () => {
                   className={`h-11 rounded-md border text-sm font-semibold transition-colors ${
                     n === quantity
                       ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border hover:border-primary/50'
+                      : n < minQuantity
+                        ? 'border-border text-muted-foreground opacity-40 cursor-not-allowed'
+                        : 'border-border hover:border-primary/50'
                   }`}
                 >
                   {n} {c.hour_short}
                 </button>
               ))}
             </div>
+            {minQuantity > 1 && <p className="mt-2 text-sm text-muted-foreground">{c.drums_min}</p>}
           </fieldset>
         )}
       </div>
 
-      {service.id === 'rehearsal' && (
-        <fieldset>
-          <legend className="text-sm font-medium mb-2">{c.extras}</legend>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {REHEARSAL_OPTIONS.map((o) => {
+      {[
+        { key: 'record', legend: c.what_record, items: serviceOptions.filter((o) => o.group === 'record') },
+        { key: 'extra', legend: c.extras, items: serviceOptions.filter((o) => o.group !== 'record') },
+      ].map((g) => g.items.length > 0 && (
+        <fieldset key={g.key}>
+          <legend className="text-sm font-medium mb-2">{g.legend}</legend>
+          <div className={`grid gap-3 ${g.key === 'record' ? 'grid-cols-2 sm:grid-cols-3' : 'sm:grid-cols-3'}`}>
+            {g.items.map((o) => {
               const on = options.includes(o.id);
               return (
                 <button
@@ -674,14 +707,14 @@ const BookingForm = () => {
                   </span>
                   <span>
                     <span className="block font-semibold text-sm">{optionName(o.id)}</span>
-                    <span className="block text-sm text-muted-foreground">{optionPrice(o)}</span>
+                    {optionPrice(o) && <span className="block text-sm text-muted-foreground">{optionPrice(o)}</span>}
                   </span>
                 </button>
               );
             })}
           </div>
         </fieldset>
-      )}
+      ))}
 
       {service.needsSlot ? (
         <div className="border-t border-border pt-6 grid gap-6 md:grid-cols-[auto_1fr]">
